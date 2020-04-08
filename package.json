@@ -1,0 +1,45 @@
+{
+  "name": "js-utils",
+  "version": "0.0.1",
+  "description": "js通用函数工具封装",
+  "keywords": [
+    "js",
+    "工具",
+    "通用"
+  ],
+  "author": "ouyang_zhigang <ouyangzhigang@live.com>",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "",
+  "repository": {
+    "url": ""
+  },
+  "license": "ISC",
+  "main": "./lib/js-utils.js",
+  "prepublishOnly": "npm run build",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "build": "npx rollup -c rollup.config.js",
+    "docs": "npx jsdoc2md chunks/*.js > README.md",
+    "eslint": "./node_modules/.bin/eslint --init"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "eslint": "^6.8.0",
+    "jsdoc": "^3.6.3",
+    "jsdoc-to-markdown": "^5.0.3",
+    "rollup": "^2.2.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-eslint": "^7.0.0",
+    "rollup-plugin-uglify": "^6.0.4"
+  }
+}
