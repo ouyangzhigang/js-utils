@@ -1,6 +1,6 @@
 {
   "presets": ["@babel/preset-env"],
   "plugins": [
-    ["import", {"libraryName": "js-utils", "libraryDirectory": "lib"}]
+    ["import", {"libraryName": "jss-utils", "libraryDirectory": "lib"}]
   ]
 }

@@ -1,6 +1,6 @@
 {
-  "name": "js-utils",
-  "version": "0.0.1",
+  "name": "jss-utils",
+  "version": "0.0.2",
   "description": "js通用函数工具封装",
   "keywords": [
     "js",
@@ -9,14 +9,17 @@
   ],
   "author": "ouyang_zhigang <ouyangzhigang@live.com>",
   "bugs": {
-    "url": ""
+    "url": "https://github.com/ouyangzhigang/js-utils/issues"
   },
-  "homepage": "",
+  "homepage": "https://github.com/ouyangzhigang/js-utils/blob/master/README.md",
   "repository": {
-    "url": ""
+    "type": "git",
+    "url": "https://github.com/ouyangzhigang/js-utils.git"
   },
   "license": "ISC",
-  "main": "./lib/js-utils.js",
+  "main": "./main.js",
+  "unpkg": "./lib/js-utils.js",
+  "module": "",
   "prepublishOnly": "npm run build",
   "directories": {
     "lib": "lib",
@@ -34,6 +37,7 @@
   "devDependencies": {
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.0",
+    "babel-plugin-import": "^1.13.0",
     "eslint": "^6.8.0",
     "jsdoc": "^3.6.3",
     "jsdoc-to-markdown": "^5.0.3",
