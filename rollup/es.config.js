@@ -1,14 +1,13 @@
 import babel from 'rollup-plugin-babel';
 import { eslint } from 'rollup-plugin-eslint';
-import { uglify } from 'rollup-plugin-uglify';
 
 const fs = require('fs');
 
 let rollupConfig = [{
-  input: './main.js',
+  input: 'main.js',
   output: {
-    file: './lib/js-utils.js',
-    format: 'umd',
+    file: 'es/js-utils.js',
+    format: 'es',
     name: 'js-utils'
   },
   plugins: [
@@ -16,21 +15,20 @@ let rollupConfig = [{
       exclude: 'node_modules/**'
     }), 
     eslint({
-      include: ['./main.js']
+      include: ['main.js']
     }),
-    uglify()
   ]
 }]
 
-const chunksFile = fs.readdirSync('./chunks');
+const chunksFile = fs.readdirSync('chunks');
 console.log(chunksFile);
 
 chunksFile.forEach((file) => {
   rollupConfig.push({
-    input: `./chunks/${file}`,
+    input: `chunks/${file}`,
     output: {
-      file: `./lib/${file}`,
-      format: 'umd',
+      file: `es/${file}`,
+      format: 'es',
       name: file.replace(/.js$/, '')
     },
     plugins: [
@@ -38,9 +36,8 @@ chunksFile.forEach((file) => {
         exclude: 'node_modules/**'
       }), 
       eslint({
-        include: [`./chunks/${file}`]
+        include: [`chunks/${file}`]
       }),
-      uglify()
     ]
   })
 })

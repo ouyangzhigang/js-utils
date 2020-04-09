@@ -17,9 +17,9 @@
     "url": "https://github.com/ouyangzhigang/js-utils.git"
   },
   "license": "ISC",
-  "main": "./main.js",
-  "unpkg": "./lib/js-utils.js",
-  "module": "",
+  "main": "./lib/js-utils.js",
+  "unpkg": "./lib/js-utils.min.js",
+  "module": "./es/js-utils.js",
   "prepublishOnly": "npm run build",
   "directories": {
     "lib": "lib",
@@ -29,8 +29,10 @@
     "lib"
   ],
   "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "npx rollup -c rollup.config.js",
+    "test": "npx http-server test",
+    "build": "npx rollup -c rollup/config.js",
+    "build:es": "npx rollup -c rollup/es.config.js",
+    "build:dist": "npx rollup -c rollup/dist.config.js",
     "docs": "npx jsdoc2md chunks/*.js > README.md",
     "eslint": "./node_modules/.bin/eslint --init"
   },
