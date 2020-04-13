@@ -5,7 +5,6 @@ Js-utils is a front-end tool library, mainly including BOM, DOM, Regex, calculat
 
 Later on, it will be possible to integrate richer toolchains and accumulate more common methods for easier development
 
-![AppVeyor](https://img.shields.io/appveyor/build/ouyangzhiang/js-utils)
 [![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/issues)
 [![GitHub forks](https://img.shields.io/github/forks/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/network)
 [![GitHub stars](https://img.shields.io/github/stars/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/stargazers)
