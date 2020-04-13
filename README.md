@@ -1,7 +1,7 @@
-js-utils collections for JavaScript
+jes-utils collections for JavaScript
 ====================================
 
-Js-utils is a front-end tool library, mainly including BOM, DOM, Regex, calculator, client, Common, Date, File, Storage, and so on. These main aspects encapsulate some Common methods.
+Jes-utils is a front-end tool library, mainly including BOM, DOM, Regex, calculator, client, Common, Date, File, Storage, and so on. These main aspects encapsulate some Common methods.
 
 Later on, it will be possible to integrate richer toolchains and accumulate more common methods for easier development
 
