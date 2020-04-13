@@ -5,11 +5,13 @@ Js-utils is a front-end tool library, mainly including BOM, DOM, Regex, calculat
 
 Later on, it will be possible to integrate richer toolchains and accumulate more common methods for easier development
 
+![AppVeyor](https://img.shields.io/appveyor/build/ouyangzhiang/js-utils?style=for-the-badge)
 [![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils?style=for-the-badge&logo=javascript)](https://github.com/ouyangzhigang/js-utils/issues)
 [![GitHub forks](https://img.shields.io/github/forks/ouyangzhigang/js-utils?style=for-the-badge&logo=javascript)](https://github.com/ouyangzhigang/js-utils/network)
 [![GitHub stars](https://img.shields.io/github/stars/ouyangzhigang/js-utils?style=for-the-badge&logo=javascript)](https://github.com/ouyangzhigang/js-utils/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils?style=for-the-badge&logo=javascript)](https://github.com/ouyangzhigang/js-utils/issues)
-[![Twitter](https://img.shields.io/twitter/url?style=social&logo=javascript)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fouyangzhigang%2Fjs-utils)
+<!-- [![Twitter](https://img.shields.io/twitter/url?style=social&logo=javascript)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fouyangzhigang%2Fjs-utils) -->
+![GitHub closed issues](https://img.shields.io/github/issues-closed/ouyangzhigang/js-utils?style=for-the-badge)
 
 ## Constants
 
