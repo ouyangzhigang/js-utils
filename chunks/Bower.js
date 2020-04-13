@@ -5,7 +5,7 @@
  * @function currentURL
  * @name currentURL
  * @description 返回当前url
- * 
+ * @returns {string}
  */
 export const currentURL = () => window.location.href;
 
@@ -13,8 +13,9 @@ export const currentURL = () => window.location.href;
  * @function getUrlParam
  * @name getUrlParam
  * @description 获取url参数（第一种）
- * @param {*} name
- * @param {*} origin
+ * @param {string} - name
+ * @param {string} - origin
+ * @returns {null}
  */
 export function getUrlParam(name, origin = null) {
   let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
@@ -178,7 +179,7 @@ export function getPageScrollLeft() {
 
 /**
  * @function launchFullscreen
- * @description 开启全屏 
+ * @description 开启全屏
  * @param {*} element
  */
 export function launchFullscreen(element) {
@@ -192,3 +193,113 @@ export function launchFullscreen(element) {
       element.webkitRequestFullScreen()
   }
 }
+
+/** 平滑滚动到页面顶部 */
+export const scrollToTop = () => {
+  const c = document.documentElement.scrollTop || document.body.scrollTop;
+  if (c > 0) {
+      window.requestAnimationFrame(scrollToTop);
+      window.scrollTo(0, c - c / 8);
+  }
+};
+
+/**
+ * 打开一个窗口
+ * @param { string } url
+ * @param { string } windowName
+ * @param { number } width
+ * @param { number } height
+ */
+export function openWindow(url, windowName, width, height) {
+  var x = parseInt(screen.width / 2.0) - width / 2.0;
+  var y = parseInt(screen.height / 2.0) - height / 2.0;
+  var isMSIE = navigator.appName == "Microsoft Internet Explorer";
+  if (isMSIE) {
+      var p = "resizable=1,location=no,scrollbars=no,width=";
+      p = p + width;
+      p = p + ",height=";
+      p = p + height;
+      p = p + ",left=";
+      p = p + x;
+      p = p + ",top=";
+      p = p + y;
+      window.open(url, windowName, p);
+  } else {
+      var win = window.open(
+          url,
+          "ZyiisPopup",
+          "top=" +
+          y +
+          ",left=" +
+          x +
+          ",scrollbars=" +
+          scrollbars +
+          ",dialog=yes,modal=yes,width=" +
+          width +
+          ",height=" +
+          height +
+          ",resizable=no"
+      );
+      eval("try { win.resizeTo(width, height); } catch(e) { }");
+      win.focus();
+  }
+}
+
+/**
+ * 滚动到指定元素区域
+ * @param {*} element 
+ */
+export const smoothScroll = element =>{
+  document.querySelector(element).scrollIntoView({
+      behavior: 'smooth'
+  });
+};
+
+/**
+ * 返回当前滚动条位置
+ * @param {*} el 
+ */
+export const getScrollPosition = (el = window) => ({
+  x: el.pageXOffset !== undefined ? el.pageXOffset : el.scrollLeft,
+  y: el.pageYOffset !== undefined ? el.pageYOffset : el.scrollTop
+});
+
+/**
+ * 关闭全屏
+ */
+export function exitFullscreen() {
+  if (document.exitFullscreen) {
+      document.exitFullscreen()
+  } else if (document.msExitFullscreen) {
+      document.msExitFullscreen()
+  } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen()
+  } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen()
+  }
+}
+
+/**
+ *  获取 url 后面通过?传参的参数
+ * @param {String} name
+ */
+export function getQueryString(name) {
+  const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
+  const url = window.location.href
+  const search = url.substring(url.lastIndexOf('?') + 1)
+  const r = search.match(reg)
+  if (r != null) return unescape(r[2])
+  return null
+}
+
+/**
+ * 自适应页面（rem）
+ * @param { number } width
+ */
+export function AutoResponse(width = 750) {
+  const target = document.documentElement;
+  target.clientWidth >= 600
+    ? (target.style.fontSize = "80px")
+    : (target.style.fontSize = target.clientWidth / width * 100 + "px");
+}
+

@@ -1,5 +1,5 @@
 {
-  "name": "jss-utils",
+  "name": "jes-utils",
   "version": "0.0.3",
   "description": "js通用函数工具封装",
   "keywords": [
@@ -18,7 +18,7 @@
   },
   "license": "ISC",
   "main": "./lib/js-utils.js",
-  "unpkg": "./lib/js-utils.min.js",
+  "unpkg": "./dist/js-utils.min.js",
   "module": "./es/js-utils.js",
   "prepublishOnly": "npm run build",
   "directories": {
@@ -29,7 +29,7 @@
     "lib"
   ],
   "scripts": {
-    "test": "npx http-server test",
+    "test": "node rollup/watch.js && npx http-server test",
     "build": "npx rollup -c rollup/config.js",
     "build:es": "npx rollup -c rollup/es.config.js",
     "build:dist": "npx rollup -c rollup/dist.config.js",
@@ -47,5 +47,8 @@
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-eslint": "^7.0.0",
     "rollup-plugin-uglify": "^6.0.4"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.8.7"
   }
 }
