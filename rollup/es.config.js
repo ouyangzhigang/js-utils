@@ -2,11 +2,14 @@ import babel from 'rollup-plugin-babel';
 import { eslint } from 'rollup-plugin-eslint';
 
 const fs = require('fs');
+const rmdir = require('./rmdir');
+
+rmdir('./es');
 
 let rollupConfig = [{
   input: 'main.js',
   output: {
-    file: 'es/js-utils.js',
+    file: 'es/jes-utils.js',
     format: 'es',
     name: 'js-utils'
   },

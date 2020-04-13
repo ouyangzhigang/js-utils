@@ -3,11 +3,14 @@ import { eslint } from 'rollup-plugin-eslint';
 import { uglify } from 'rollup-plugin-uglify';
 
 const fs = require('fs');
+const rmdir = require('./rmdir');
+
+rmdir('./dist');
 
 let rollupConfig = [{
   input: 'main.js',
   output: {
-    file: 'dist/js-utils.js',
+    file: 'dist/jes-utils.js',
     format: 'umd',
     name: 'js-utils'
   },

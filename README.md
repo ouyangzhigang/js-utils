@@ -11,7 +11,26 @@ Later on, it will be possible to integrate richer toolchains and accumulate more
 [![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/issues)
 ![GitHub closed issues](https://img.shields.io/github/issues-closed/ouyangzhigang/js-utils)
 
-[![Twitter](https://img.shields.io/twitter/url?style=social&logo=javascript)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fouyangzhigang%2Fjs-utils)
+Installation
+------------
+
+To use with node:
+
+```bash
+$ npm install jes-utils --save
+```
+
+Then in the console:
+
+```javascript
+const Utils = require('jes-utils');
+```
+
+To use directly in the browser:
+
+```html
+<script src="path/dist/jes-utils.js"></script>
+```
 
 ## Constants
 
