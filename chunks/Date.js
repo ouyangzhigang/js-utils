@@ -16,8 +16,8 @@ export function isYesterday(val) {
 }
 
 /**
- * @param {String} time - 日期字符串，如'2018-8-8','2018,8,8','2018/8/8'
- * @returns {Number} 返回值为时间毫秒值
+ * @param {String} - time - 日期字符串，如'2018-8-8','2018,8,8','2018/8/8'
+ * @returns {Number} - 返回值为时间毫秒值
  */
 export function timeToTimestamp (time) {
   let date = new Date(time);
@@ -36,11 +36,13 @@ export const getMonthNum = (year, month) => {
 }
 
 /**
+ * 
  * 时间戳转化为年月日
- * @param times 时间戳
- * @param ymd 格式类型(yyyy-mm-dd,yyyy/mm/dd)
- * @param hms 可选,格式类型(hh,hh:mm,hh:mm:ss)
- * @returns {年月日}
+ * @param {date} - times - 时间戳
+ * @param {string} - ymd - 格式类型(yyyy-mm-dd,yyyy/mm/dd)
+ * @param {string} - hms - 可选,格式类型(hh,hh:mm,hh:mm:ss)
+ * @returns {date} - data - 年月日
+ * 
  */
 export const timesToYyMmDd = (times, ymd,  hms) => {
   const oDate = new Date(times)
@@ -54,22 +56,22 @@ export const timesToYyMmDd = (times, ymd,  hms) => {
   // 年月日格式
   switch (ymd) {
     case 'yyyy-mm-dd':
-      oTime = oYear + '-' + getzf(oMonth) + '-' + getzf(oDay)
+      oTime = oYear + '-' + oMonth + '-' + oDay
       break
     case 'yyyy/mm/dd':
-      oTime = oYear + '/' + getzf(oMonth) + '/' + getzf(oDay)
+      oTime = oYear + '/' + oMonth + '/' + oDay
       break
   }
   // 时分秒格式
   switch (hms) {
     case 'hh':
-      oTime = ' '+oTime + getzf(oHour)
+      oTime = ' ' + oTime + oHour
       break
     case 'hh:mm':
-      oTime = oTime + getzf(oHour) + ':' + getzf(oMin)
+      oTime = oTime + oHour + ':' + oMin
       break
     case 'hh:mm:ss':
-      oTime = oTime + getzf(oHour) + ':' + getzf(oMin) + ':' + getzf(oSec)
+      oTime = oTime + oHour + ':' + oMin + ':' + oSec
       break
   }
   return oTime

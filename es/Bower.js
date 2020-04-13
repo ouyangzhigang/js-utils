@@ -1,3 +1,9 @@
+import 'core-js/modules/es6.regexp.replace';
+import 'core-js/modules/es6.regexp.split';
+import 'core-js/modules/es6.regexp.search';
+import 'core-js/modules/es6.regexp.match';
+import 'core-js/modules/es6.regexp.constructor';
+
 /** 浏览器操作相关browser工具函数 **/
 
 /**
@@ -5,7 +11,7 @@
  * @function currentURL
  * @name currentURL
  * @description 返回当前url
- * 
+ * @returns {string}
  */
 var currentURL = function currentURL() {
   return window.location.href;
@@ -14,8 +20,9 @@ var currentURL = function currentURL() {
  * @function getUrlParam
  * @name getUrlParam
  * @description 获取url参数（第一种）
- * @param {*} name
- * @param {*} origin
+ * @param {string} - name
+ * @param {string} - origin
+ * @returns {null}
  */
 
 function getUrlParam(name) {
@@ -188,7 +195,7 @@ function getPageScrollLeft() {
 }
 /**
  * @function launchFullscreen
- * @description 开启全屏 
+ * @description 开启全屏
  * @param {*} element
  */
 
@@ -203,5 +210,104 @@ function launchFullscreen(element) {
     element.webkitRequestFullScreen();
   }
 }
+/** 平滑滚动到页面顶部 */
 
-export { currentURL, funcUrlDel, getClientHeight, getPageScrollLeft, getPageScrollTop, getPageViewWidth, getPageWidth, getUrlParam, getUrlParams, getViewportOffset, launchFullscreen };
+var scrollToTop = function scrollToTop() {
+  var c = document.documentElement.scrollTop || document.body.scrollTop;
+
+  if (c > 0) {
+    window.requestAnimationFrame(scrollToTop);
+    window.scrollTo(0, c - c / 8);
+  }
+};
+/**
+ * 打开一个窗口
+ * @param { string } url
+ * @param { string } windowName
+ * @param { number } width
+ * @param { number } height
+ */
+
+function openWindow(url, windowName, width, height) {
+  var x = parseInt(screen.width / 2.0) - width / 2.0;
+  var y = parseInt(screen.height / 2.0) - height / 2.0;
+  var isMSIE = navigator.appName == "Microsoft Internet Explorer";
+
+  if (isMSIE) {
+    var p = "resizable=1,location=no,scrollbars=no,width=";
+    p = p + width;
+    p = p + ",height=";
+    p = p + height;
+    p = p + ",left=";
+    p = p + x;
+    p = p + ",top=";
+    p = p + y;
+    window.open(url, windowName, p);
+  } else {
+    var win = window.open(url, "ZyiisPopup", "top=" + y + ",left=" + x + ",scrollbars=" + scrollbars + ",dialog=yes,modal=yes,width=" + width + ",height=" + height + ",resizable=no");
+    eval("try { win.resizeTo(width, height); } catch(e) { }");
+    win.focus();
+  }
+}
+/**
+ * 滚动到指定元素区域
+ * @param {*} element 
+ */
+
+var smoothScroll = function smoothScroll(element) {
+  document.querySelector(element).scrollIntoView({
+    behavior: 'smooth'
+  });
+};
+/**
+ * 返回当前滚动条位置
+ * @param {*} el 
+ */
+
+var getScrollPosition = function getScrollPosition() {
+  var el = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : window;
+  return {
+    x: el.pageXOffset !== undefined ? el.pageXOffset : el.scrollLeft,
+    y: el.pageYOffset !== undefined ? el.pageYOffset : el.scrollTop
+  };
+};
+/**
+ * 关闭全屏
+ */
+
+function exitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
+  } else if (document.mozCancelFullScreen) {
+    document.mozCancelFullScreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  }
+}
+/**
+ *  获取 url 后面通过?传参的参数
+ * @param {String} name
+ */
+
+function getQueryString(name) {
+  var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+  var url = window.location.href;
+  var search = url.substring(url.lastIndexOf('?') + 1);
+  var r = search.match(reg);
+  if (r != null) return unescape(r[2]);
+  return null;
+}
+/**
+ * 自适应页面（rem）
+ * @param { number } width
+ */
+
+function AutoResponse() {
+  var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 750;
+  var target = document.documentElement;
+  target.clientWidth >= 600 ? target.style.fontSize = "80px" : target.style.fontSize = target.clientWidth / width * 100 + "px";
+}
+
+export { AutoResponse, currentURL, exitFullscreen, funcUrlDel, getClientHeight, getPageScrollLeft, getPageScrollTop, getPageViewWidth, getPageWidth, getQueryString, getScrollPosition, getUrlParam, getUrlParams, getViewportOffset, launchFullscreen, openWindow, scrollToTop, smoothScroll };

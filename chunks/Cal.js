@@ -14,15 +14,15 @@ export const formatMoney = num => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g
  * @param {string} [pidName='parentId']
  * @param {string} [idName='id']
  * @param {string} [childrenName='children']
- * @param {*} key
- * @returns
+ * @param {string} - key
+ * @returns { array }
  */
 export function getTreeData(data, pid, pidName = 'parentId', idName = 'id', childrenName = 'children', key) {
   let arr = [];
 
   for (let i = 0; i < data.length; i++) {
     if (data[i][pidName] == pid) {
-      data[i].key = data[i][idName];
+      data[i][key] = data[i][idName];
       data[i][childrenName] = getTreeData(data, data[i][idName], pidName, idName, childrenName);
       arr.push(data[i]);
     }
