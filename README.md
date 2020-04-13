@@ -1,9 +1,17 @@
-Js-Utils collections for JavaScript
+js-utils collections for JavaScript
 ====================================
 
+Js-utils is a front-end tool library, mainly including BOM, DOM, Regex, calculator, client, Common, Date, File, Storage, and so on. These main aspects encapsulate some Common methods.
 
+Later on, it will be possible to integrate richer toolchains and accumulate more common methods for easier development
 
-## List
+[![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils?style=for-the-badge&logo=javascript)](https://github.com/ouyangzhigang/js-utils/issues)
+[![GitHub forks](https://img.shields.io/github/forks/ouyangzhigang/js-utils?style=for-the-badge&logo=javascript)](https://github.com/ouyangzhigang/js-utils/network)
+[![GitHub stars](https://img.shields.io/github/stars/ouyangzhigang/js-utils?style=for-the-badge&logo=javascript)](https://github.com/ouyangzhigang/js-utils/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils?style=for-the-badge&logo=javascript)](https://github.com/ouyangzhigang/js-utils/issues)
+[![Twitter](https://img.shields.io/twitter/url?style=social&logo=javascript)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fouyangzhigang%2Fjs-utils)
+
+## Constants
 
 <dl>
 <dt><a href="#scrollToTop">scrollToTop</a></dt>
@@ -959,14 +967,14 @@ localStorage 移除
 
 **Kind**: global function  
 
-| Param | Type | Default |
-| --- | --- | --- |
-| data | <code>\*</code> |  | 
-| pid | <code>\*</code> |  | 
-| [pidName] | <code>string</code> | <code>&quot;&#x27;parentId&#x27;&quot;</code> | 
-| [idName] | <code>string</code> | <code>&quot;&#x27;id&#x27;&quot;</code> | 
-| [childrenName] | <code>string</code> | <code>&quot;&#x27;children&#x27;&quot;</code> | 
-| key | <code>\*</code> |  | 
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| data | <code>\*</code> |  |  |
+| pid | <code>\*</code> |  |  |
+| [pidName] | <code>string</code> | <code>&quot;&#x27;parentId&#x27;&quot;</code> |  |
+| [idName] | <code>string</code> | <code>&quot;&#x27;id&#x27;&quot;</code> |  |
+| [childrenName] | <code>string</code> | <code>&quot;&#x27;children&#x27;&quot;</code> |  |
+| key | <code>string</code> |  | key |
 
 <a name="inArray"></a>
 
