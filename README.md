@@ -5,15 +5,15 @@ Jes-utils is a front-end tool library, mainly including BOM, DOM, Regex, calcula
 
 Later on, it will be possible to integrate richer toolchains and accumulate more common methods for easier development
 
-[![Custom badge](https://img.shields.io/endpoint?label=build-status&url=(https://www.npmjs.com/package/jes-utils))](https://www.npmjs.com/package/jes-utils)
+[![Custom badge](https://img.shields.io/endpoint?label=build-status&url=https%3A%2F%2Fgithub.com%2Fouyangzhigang%2Fjs-utils)](https://www.npmjs.com/package/jes-utils)
 [![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/issues)
 [![GitHub forks](https://img.shields.io/github/forks/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/network)
 [![GitHub stars](https://img.shields.io/github/stars/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/issues)
 ![GitHub closed issues](https://img.shields.io/github/issues-closed/ouyangzhigang/js-utils)
 
-Installation
-------------
+### Installation
+-----------------
 
 To use with node:
 
@@ -21,19 +21,49 @@ To use with node:
 $ npm install jes-utils --save
 ```
 
-Then in the console:
+#### cmd:
 
 ```javascript
 const Utils = require('jes-utils');
 ```
 
-To use directly in the browser:
+#### amd:
+
+```javascript
+define(['jes-utils'], function(Utils) { // todo })
+```
+
+To use directly in the browser (iife):
 
 ```html
 <script src="path/dist/jes-utils.js"></script>
 ```
 
-## Constants
+or in entry point:
+
+```javascript
+require('jes-utils.js')
+```
+
+#### es:
+
+```javascript
+import { blobToFile } from 'jes-utils'
+import { getStyle } from 'jes-utils/es/Dom'
+```
+
+babel config
+
+.babelrc
+
+```json
+"plugin": [["import", {"libraryName": "jes-utils", "libraryDirectory": "es", "camel2DashComponentName": false}]]
+```
+
+
+The following is the method document provided by js-utils:
+
+#### Constants
 
 <dl>
 <dt><a href="#scrollToTop">scrollToTop</a></dt>
@@ -188,7 +218,7 @@ To use directly in the browser:
 </dd>
 </dl>
 
-## Functions
+#### Functions
 
 <dl>
 <dt><a href="#currentURL">currentURL()</a> ⇒ <code>string</code></dt>

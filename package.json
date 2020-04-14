@@ -17,9 +17,9 @@
     "url": "https://github.com/ouyangzhigang/js-utils.git"
   },
   "license": "ISC",
-  "main": "./lib/js-utils.js",
-  "unpkg": "./dist/js-utils.min.js",
-  "module": "./es/js-utils.js",
+  "main": "./lib/jes-utils.js",
+  "unpkg": "./dist/jes-utils.min.js",
+  "module": "./es/jes-utils.js",
   "prepublishOnly": "npm run build",
   "directories": {
     "lib": "lib",
