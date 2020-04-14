@@ -5,7 +5,7 @@ Jes-utils is a front-end tool library, mainly including BOM, DOM, Regex, calcula
 
 Later on, it will be possible to integrate richer toolchains and accumulate more common methods for easier development
 
-[![build status](https://img.shields.io/badge/build--status-jes--utils-red)](https://www.npmjs.com/package/jes-utils)
+[![Custom badge](https://img.shields.io/endpoint?label=build-status&url=(https://www.npmjs.com/package/jes-utils))](https://www.npmjs.com/package/jes-utils)
 [![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/issues)
 [![GitHub forks](https://img.shields.io/github/forks/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/network)
 [![GitHub stars](https://img.shields.io/github/stars/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/stargazers)
