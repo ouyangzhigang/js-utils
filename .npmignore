@@ -1,2 +1,5 @@
 chunks
 rollup
+node_modules
+.vscode
+dist

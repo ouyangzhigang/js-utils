@@ -42,14 +42,15 @@ To use directly in the browser (iife):
 or in entry point:
 
 ```javascript
-require('jes-utils.js')
+require('jes-utils')
 ```
 
 #### es:
 
 ```javascript
 import { blobToFile } from 'jes-utils'
-import { getStyle } from 'jes-utils/es/Dom'
+import { getStyle } from 'jes-utils'
+import { Bower, Dom } from 'jes-utils'
 ```
 
 babel config
@@ -57,7 +58,18 @@ babel config
 .babelrc
 
 ```json
-"plugin": [["import", {"libraryName": "jes-utils", "libraryDirectory": "es", "camel2DashComponentName": false}]]
+"plugin": [["import", {"libraryName": "jes-utils", "libraryDirectory": "lib", "camel2DashComponentName": false}]]
+```
+
+### Usage:
+----------
+
+```javascript
+Utils.Bower.currentURL()
+
+Bower.currentURL()
+
+getStyle()
 ```
 
 

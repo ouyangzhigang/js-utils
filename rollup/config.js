@@ -1,5 +1,6 @@
 import babel from 'rollup-plugin-babel';
 import { eslint } from 'rollup-plugin-eslint';
+import resolve from 'rollup-plugin-node-resolve';
 const fs = require('fs');
 const rmdir = require('./rmdir');
 
@@ -10,15 +11,20 @@ let rollupConfig = [{
   output: {
     file: 'lib/jes-utils.js',
     format: 'umd',
-    name: 'js-utils'
+    name: 'jes-utils'
   },
   plugins: [
     babel({
-      exclude: 'node_modules/**'
+      exclude: '/node_modules/'
     }), 
     eslint({
       include: ['main.js']
     }),
+    resolve({
+      jsnext: true,
+      main: true,
+      browser: true,
+    })
   ]
 }]
 
@@ -35,11 +41,16 @@ chunksFile.forEach((file) => {
     },
     plugins: [
       babel({
-        exclude: 'node_modules/**'
+        exclude: '/node_modules/'
       }), 
       eslint({
         include: [`chunks/${file}`]
       }),
+      resolve({
+        jsnext: true,
+        main: true,
+        browser: true,
+      })
     ]
   })
 })
