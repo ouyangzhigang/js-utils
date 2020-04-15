@@ -1,7 +1,8 @@
 import babel from 'rollup-plugin-babel';
 import { eslint } from 'rollup-plugin-eslint';
 import { uglify } from 'rollup-plugin-uglify';
-import resolve from 'rollup-plugin-node-resolve';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 const fs = require('fs');
 const rmdir = require('./rmdir');
@@ -23,6 +24,7 @@ let rollupConfig = [{
       include: ['main.js']
     }),
     resolve(),
+    commonjs(),
     uglify()
   ]
 }]
@@ -46,6 +48,7 @@ chunksFile.forEach((file) => {
         include: [`chunks/${file}`]
       }),
       resolve(),
+      commonjs(),
       uglify()
     ]
   })

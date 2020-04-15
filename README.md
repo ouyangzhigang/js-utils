@@ -9,7 +9,6 @@ Later on, it will be possible to integrate richer toolchains and accumulate more
 [![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/issues)
 [![GitHub forks](https://img.shields.io/github/forks/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/network)
 [![GitHub stars](https://img.shields.io/github/stars/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/stargazers)
-[![GitHub issues](https://img.shields.io/github/issues/ouyangzhigang/js-utils)](https://github.com/ouyangzhigang/js-utils/issues)
 ![GitHub closed issues](https://img.shields.io/github/issues-closed/ouyangzhigang/js-utils)
 
 ### Installation
