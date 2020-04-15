@@ -47,9 +47,15 @@ require('jes-utils')
 #### es:
 
 ```javascript
-import { blobToFile } from 'jes-utils'
-import { getStyle } from 'jes-utils'
+// cmd
+const Utils = require('jes-utils')
+// es - require module
+import { blobToFile } from 'jes-utils/lib/File'
+import { getStyle } from 'jes-utils/lib/Dom'
+// es - require all
 import { Bower, Dom } from 'jes-utils'
+// as
+import * as Bower from 'jes-utils/lib/Bower'
 ```
 
 babel config
