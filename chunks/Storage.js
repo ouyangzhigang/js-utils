@@ -101,3 +101,18 @@ export const localStorageGet = (key) => {
 export const localStorageRemove = (key) => {
   localStorage.removeItem(key)
 };
+
+/**
+ * 缓存函数器
+ * @function memoize
+ * @param { function } - fn - 函数
+ * @returns { Map } - cached - 类数组
+ */
+export const memoize = fn => {
+  const cache = new Map();
+  const cached = function(val) {
+    return cache.has(val) ? cache.get(val) : cache.set(val, fn.call(this, val)) && cache.get(val);
+  };
+  cached.cache = cache;
+  return cached;
+};

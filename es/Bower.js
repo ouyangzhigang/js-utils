@@ -687,6 +687,45 @@ _fixReWks('replace', 2, function (defined, REPLACE, $replace, maybeCallNative) {
   }
 });
 
+// 21.2.5.3 get RegExp.prototype.flags()
+if (_descriptors && /./g.flags != 'g') _objectDp.f(RegExp.prototype, 'flags', {
+  configurable: true,
+  get: _flags
+});
+
+var TO_STRING = 'toString';
+var $toString = /./[TO_STRING];
+
+var define = function (fn) {
+  _redefine(RegExp.prototype, TO_STRING, fn, true);
+}; // 21.2.5.14 RegExp.prototype.toString()
+
+
+if (_fails(function () {
+  return $toString.call({
+    source: 'a',
+    flags: 'b'
+  }) != '/a/b';
+})) {
+  define(function toString() {
+    var R = _anObject(this);
+    return '/'.concat(R.source, '/', 'flags' in R ? R.flags : !_descriptors && R instanceof RegExp ? _flags.call(R) : undefined);
+  }); // FF44- RegExp#toString has a wrong name
+} else if ($toString.name != TO_STRING) {
+  define(function toString() {
+    return $toString.call(this);
+  });
+}
+
+var test = {};
+test[_wks('toStringTag')] = 'z';
+
+if (test + '' != '[object z]') {
+  _redefine(Object.prototype, 'toString', function toString() {
+    return '[object ' + _classof(this) + ']';
+  }, true);
+}
+
 // 7.2.8 IsRegExp(argument)
 
 
@@ -1181,13 +1220,13 @@ function getUrlParams(name) {
  * @param { string } paramName
  * @param { string } replaceWith
  */
-// export function replaceParamVal(paramName,replaceWith) {
-//   var oUrl = location.href.toString();
-//   // var re= eval('/('+ paramName+'=)([^&]*)/gi');
-//   location.href = oUrl.replace(re,paramName+'='+replaceWith);
-//   return location.href;
-// }
 
+function replaceParamVal(paramName, replaceWith) {
+  var oUrl = location.href.toString();
+  var re = Function('/(' + paramName + '=)([^&]*)/gi')();
+  location.href = oUrl.replace(re, paramName + '=' + replaceWith);
+  return location.href;
+}
 /**
  * @function funcUrlDel
  * @name funcUrlDel
@@ -1356,7 +1395,7 @@ function openWindow(url, windowName, width, height) {
     window.open(url, windowName, p);
   } else {
     var win = window.open(url, "ZyiisPopup", "top=" + y + ",left=" + x + ",scrollbars=" + scrollbars + ",dialog=yes,modal=yes,width=" + width + ",height=" + height + ",resizable=no");
-    eval("try { win.resizeTo(width, height); } catch(e) { }");
+    Function("try { win.resizeTo(width, height); } catch(e) { }")();
     win.focus();
   }
 }
@@ -1420,5 +1459,25 @@ function AutoResponse() {
   var target = document.documentElement;
   target.clientWidth >= 600 ? target.style.fontSize = "80px" : target.style.fontSize = target.clientWidth / width * 100 + "px";
 }
+/**
+ * requestAnimationFrame 制作动画
+ * @returns {function} - 动画全局对象
+ */
 
-export { AutoResponse, currentURL, exitFullscreen, funcUrlDel, getClientHeight, getPageScrollLeft, getPageScrollTop, getPageViewWidth, getPageWidth, getQueryString, getScrollPosition, getUrlParam, getUrlParams, getViewportOffset, launchFullscreen, openWindow, scrollToTop, smoothScroll };
+var requestAnimFrame = function () {
+  return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (a) {
+    window.setTimeout(a, 1e3 / 60, new Date().getTime());
+  };
+}();
+/**
+ * cancelAnimFrame 取消动画
+ * @returns {function} - 动画全局对象
+ */
+
+var cancelAnimFrame = function () {
+  return window.cancelAnimationFrame || window.webkitCancelAnimationFrame || window.mozCancelAnimationFrame || function (id) {
+    clearTimeout(id);
+  };
+}();
+
+export { AutoResponse, cancelAnimFrame, currentURL, exitFullscreen, funcUrlDel, getClientHeight, getPageScrollLeft, getPageScrollTop, getPageViewWidth, getPageWidth, getQueryString, getScrollPosition, getUrlParam, getUrlParams, getViewportOffset, launchFullscreen, openWindow, replaceParamVal, requestAnimFrame, scrollToTop, smoothScroll };

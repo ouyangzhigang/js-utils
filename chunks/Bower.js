@@ -58,12 +58,12 @@ export function getUrlParams(name) {
  * @param { string } paramName
  * @param { string } replaceWith
  */
-// export function replaceParamVal(paramName,replaceWith) {
-//   var oUrl = location.href.toString();
-//   // var re= eval('/('+ paramName+'=)([^&]*)/gi');
-//   location.href = oUrl.replace(re,paramName+'='+replaceWith);
-//   return location.href;
-// }
+export function replaceParamVal(paramName,replaceWith) {
+  var oUrl = location.href.toString();
+  var re= Function('/('+ paramName+'=)([^&]*)/gi')();
+  location.href = oUrl.replace(re,paramName+'='+replaceWith);
+  return location.href;
+}
 
 /**
  * @function funcUrlDel
@@ -240,7 +240,7 @@ export function openWindow(url, windowName, width, height) {
           height +
           ",resizable=no"
       );
-      eval("try { win.resizeTo(width, height); } catch(e) { }");
+      Function("try { win.resizeTo(width, height); } catch(e) { }")();
       win.focus();
   }
 }
@@ -303,3 +303,18 @@ export function AutoResponse(width = 750) {
     : (target.style.fontSize = target.clientWidth / width * 100 + "px");
 }
 
+/**
+ * requestAnimationFrame 制作动画
+ * @returns {function} - 动画全局对象
+ */
+export const requestAnimFrame = function() {   
+  return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function(a) {window.setTimeout(a, 1e3 / 60, (new Date).getTime())};   
+}();
+
+/**
+ * cancelAnimFrame 取消动画
+ * @returns {function} - 动画全局对象
+ */
+export const cancelAnimFrame = function() {   
+  return window.cancelAnimationFrame || window.webkitCancelAnimationFrame || window.mozCancelAnimationFrame || function(id) { clearTimeout(id); }; 
+}();

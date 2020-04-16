@@ -20,7 +20,7 @@ export const hideTag = (...el) => [...el].forEach(e => (e.style.display = 'none'
  * @param { element} el  元素节点
  * @param { string } ruleName  指定元素的名称
  */
-export const getStyle = (el, ruleName) => getComputedStyle(el)[ruleName];
+export const getStyle = (el, ruleName) => window.getComputedStyle(el)[ruleName];
 
 /**
  * 检查是否包含子元素
@@ -47,3 +47,11 @@ export const escapeHTML = str =>{
       }[tag] || tag)
   );
 };
+
+/**
+ * 删除字符串中的HTMl标签
+ * @name stripHTMLTags
+ * @param { string } - str - html模版
+ * @return { string }
+ */
+export const stripHTMLTags = str => str.replace(/<[^>]*>/g, '');

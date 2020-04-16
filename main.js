@@ -7,7 +7,8 @@ import * as Dater from './chunks/Date';
 import * as Storage from './chunks/Storage';
 import * as Client from './chunks/Client';
 import * as Cal from './chunks/Cal';
+import * as Event from './chunks/Event';
 
 export {
-  Cal, Client, Storage, File, Dater, Regex, Dom, Common, Bower
+  Cal, Client, Storage, File, Dater, Regex, Dom, Common, Bower, Event
 }

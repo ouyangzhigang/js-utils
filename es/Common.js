@@ -1,65 +1,3 @@
-var _isObject = function (it) {
-  return typeof it === 'object' ? it !== null : typeof it === 'function';
-};
-
-var _anObject = function (it) {
-  if (!_isObject(it)) throw TypeError(it + ' is not an object!');
-  return it;
-};
-
-// 7.1.4 ToInteger
-var ceil = Math.ceil;
-var floor = Math.floor;
-
-var _toInteger = function (it) {
-  return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
-};
-
-// 7.1.15 ToLength
-
-
-var min = Math.min;
-
-var _toLength = function (it) {
-  return it > 0 ? min(_toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
-};
-
-// 7.2.1 RequireObjectCoercible(argument)
-var _defined = function (it) {
-  if (it == undefined) throw TypeError("Can't call method on  " + it);
-  return it;
-};
-
-// true  -> String#at
-// false -> String#codePointAt
-
-
-var _stringAt = function (TO_STRING) {
-  return function (that, pos) {
-    var s = String(_defined(that));
-    var i = _toInteger(pos);
-    var l = s.length;
-    var a, b;
-    if (i < 0 || i >= l) return TO_STRING ? '' : undefined;
-    a = s.charCodeAt(i);
-    return a < 0xd800 || a > 0xdbff || i + 1 === l || (b = s.charCodeAt(i + 1)) < 0xdc00 || b > 0xdfff ? TO_STRING ? s.charAt(i) : a : TO_STRING ? s.slice(i, i + 2) : (a - 0xd800 << 10) + (b - 0xdc00) + 0x10000;
-  };
-};
-
-var at = _stringAt(true); // `AdvanceStringIndex` abstract operation
-// https://tc39.github.io/ecma262/#sec-advancestringindex
-
-
-var _advanceStringIndex = function (S, index, unicode) {
-  return index + (unicode ? at(S, index).length : 1);
-};
-
-var toString = {}.toString;
-
-var _cof = function (it) {
-  return toString.call(it).slice(8, -1);
-};
-
 function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
@@ -114,118 +52,14 @@ var $exports = module.exports = function (name) {
 $exports.store = store;
 });
 
-// getting tag from 19.1.3.6 Object.prototype.toString()
-
-
-var TAG = _wks('toStringTag'); // ES3 wrong here
-
-
-var ARG = _cof(function () {
-  return arguments;
-}()) == 'Arguments'; // fallback for IE11 Script Access Denied error
-
-var tryGet = function (it, key) {
-  try {
-    return it[key];
-  } catch (e) {
-    /* empty */
-  }
+var _isObject = function (it) {
+  return typeof it === 'object' ? it !== null : typeof it === 'function';
 };
 
-var _classof = function (it) {
-  var O, T, B;
-  return it === undefined ? 'Undefined' : it === null ? 'Null' // @@toStringTag case
-  : typeof (T = tryGet(O = Object(it), TAG)) == 'string' ? T // builtinTag case
-  : ARG ? _cof(O) // ES3 arguments fallback
-  : (B = _cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
+var _anObject = function (it) {
+  if (!_isObject(it)) throw TypeError(it + ' is not an object!');
+  return it;
 };
-
-var builtinExec = RegExp.prototype.exec; // `RegExpExec` abstract operation
-// https://tc39.github.io/ecma262/#sec-regexpexec
-
-var _regexpExecAbstract = function (R, S) {
-  var exec = R.exec;
-
-  if (typeof exec === 'function') {
-    var result = exec.call(R, S);
-
-    if (typeof result !== 'object') {
-      throw new TypeError('RegExp exec method returned something other than an Object or null');
-    }
-
-    return result;
-  }
-
-  if (_classof(R) !== 'RegExp') {
-    throw new TypeError('RegExp#exec called on incompatible receiver');
-  }
-
-  return builtinExec.call(R, S);
-};
-
-var _flags = function () {
-  var that = _anObject(this);
-  var result = '';
-  if (that.global) result += 'g';
-  if (that.ignoreCase) result += 'i';
-  if (that.multiline) result += 'm';
-  if (that.unicode) result += 'u';
-  if (that.sticky) result += 'y';
-  return result;
-};
-
-var nativeExec = RegExp.prototype.exec; // This always refers to the native implementation, because the
-// String#replace polyfill uses ./fix-regexp-well-known-symbol-logic.js,
-// which loads this file before patching the method.
-
-var nativeReplace = String.prototype.replace;
-var patchedExec = nativeExec;
-var LAST_INDEX = 'lastIndex';
-
-var UPDATES_LAST_INDEX_WRONG = function () {
-  var re1 = /a/,
-      re2 = /b*/g;
-  nativeExec.call(re1, 'a');
-  nativeExec.call(re2, 'a');
-  return re1[LAST_INDEX] !== 0 || re2[LAST_INDEX] !== 0;
-}(); // nonparticipating capturing group, copied from es5-shim's String#split patch.
-
-
-var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
-var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED;
-
-if (PATCH) {
-  patchedExec = function exec(str) {
-    var re = this;
-    var lastIndex, reCopy, match, i;
-
-    if (NPCG_INCLUDED) {
-      reCopy = new RegExp('^' + re.source + '$(?!\\s)', _flags.call(re));
-    }
-
-    if (UPDATES_LAST_INDEX_WRONG) lastIndex = re[LAST_INDEX];
-    match = nativeExec.call(re, str);
-
-    if (UPDATES_LAST_INDEX_WRONG && match) {
-      re[LAST_INDEX] = re.global ? match.index + match[0].length : lastIndex;
-    }
-
-    if (NPCG_INCLUDED && match && match.length > 1) {
-      // Fix browsers whose `exec` methods don't consistently return `undefined`
-      // for NPCG, like IE8. NOTE: This doesn' work for /(.?)?/
-      // eslint-disable-next-line no-loop-func
-      nativeReplace.call(match[0], reCopy, function () {
-        for (i = 1; i < arguments.length - 2; i++) {
-          if (arguments[i] === undefined) match[i] = undefined;
-        }
-      });
-    }
-
-    return match;
-  };
-}
-
-var _regexpExec = patchedExec;
 
 var _fails = function (exec) {
   try {
@@ -308,6 +142,54 @@ var _hide = _descriptors ? function (object, key, value) {
 } : function (object, key, value) {
   object[key] = value;
   return object;
+};
+
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = _wks('unscopables');
+
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) _hide(ArrayProto, UNSCOPABLES, {});
+
+var _addToUnscopables = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
+var _iterStep = function (done, value) {
+  return {
+    value: value,
+    done: !!done
+  };
+};
+
+var _iterators = {};
+
+var toString = {}.toString;
+
+var _cof = function (it) {
+  return toString.call(it).slice(8, -1);
+};
+
+// fallback for non-array-like ES3 and non-enumerable old V8 strings
+ // eslint-disable-next-line no-prototype-builtins
+
+
+var _iobject = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
+  return _cof(it) == 'String' ? it.split('') : Object(it);
+};
+
+// 7.2.1 RequireObjectCoercible(argument)
+var _defined = function (it) {
+  if (it == undefined) throw TypeError("Can't call method on  " + it);
+  return it;
+};
+
+// to indexed object, toObject with fallback for non-array-like ES3 strings
+
+
+
+
+var _toIobject = function (it) {
+  return _iobject(_defined(it));
 };
 
 var hasOwnProperty = {}.hasOwnProperty;
@@ -436,6 +318,545 @@ $export.U = 64; // safe
 $export.R = 128; // real proto method for `library`
 
 var _export = $export;
+
+// 7.1.4 ToInteger
+var ceil = Math.ceil;
+var floor = Math.floor;
+
+var _toInteger = function (it) {
+  return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
+};
+
+// 7.1.15 ToLength
+
+
+var min = Math.min;
+
+var _toLength = function (it) {
+  return it > 0 ? min(_toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
+};
+
+var max = Math.max;
+var min$1 = Math.min;
+
+var _toAbsoluteIndex = function (index, length) {
+  index = _toInteger(index);
+  return index < 0 ? max(index + length, 0) : min$1(index, length);
+};
+
+// false -> Array#indexOf
+// true  -> Array#includes
+
+
+
+
+
+
+var _arrayIncludes = function (IS_INCLUDES) {
+  return function ($this, el, fromIndex) {
+    var O = _toIobject($this);
+    var length = _toLength(O.length);
+    var index = _toAbsoluteIndex(fromIndex, length);
+    var value; // Array#includes uses SameValueZero equality algorithm
+    // eslint-disable-next-line no-self-compare
+
+    if (IS_INCLUDES && el != el) while (length > index) {
+      value = O[index++]; // eslint-disable-next-line no-self-compare
+
+      if (value != value) return true; // Array#indexOf ignores holes, Array#includes - not
+    } else for (; length > index; index++) if (IS_INCLUDES || index in O) {
+      if (O[index] === el) return IS_INCLUDES || index || 0;
+    }
+    return !IS_INCLUDES && -1;
+  };
+};
+
+var shared = _shared('keys');
+
+
+
+var _sharedKey = function (key) {
+  return shared[key] || (shared[key] = _uid(key));
+};
+
+var arrayIndexOf = _arrayIncludes(false);
+
+var IE_PROTO = _sharedKey('IE_PROTO');
+
+var _objectKeysInternal = function (object, names) {
+  var O = _toIobject(object);
+  var i = 0;
+  var result = [];
+  var key;
+
+  for (key in O) if (key != IE_PROTO) _has(O, key) && result.push(key); // Don't enum bug & hidden keys
+
+
+  while (names.length > i) if (_has(O, key = names[i++])) {
+    ~arrayIndexOf(result, key) || result.push(key);
+  }
+
+  return result;
+};
+
+// IE 8- don't enum bug keys
+var _enumBugKeys = 'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'.split(',');
+
+// 19.1.2.14 / 15.2.3.14 Object.keys(O)
+
+
+
+
+var _objectKeys = Object.keys || function keys(O) {
+  return _objectKeysInternal(O, _enumBugKeys);
+};
+
+var _objectDps = _descriptors ? Object.defineProperties : function defineProperties(O, Properties) {
+  _anObject(O);
+  var keys = _objectKeys(Properties);
+  var length = keys.length;
+  var i = 0;
+  var P;
+
+  while (length > i) _objectDp.f(O, P = keys[i++], Properties[P]);
+
+  return O;
+};
+
+var document$1 = _global.document;
+
+var _html = document$1 && document$1.documentElement;
+
+// 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
+
+
+
+
+
+
+var IE_PROTO$1 = _sharedKey('IE_PROTO');
+
+var Empty = function () {
+  /* empty */
+};
+
+var PROTOTYPE$1 = 'prototype'; // Create object with fake `null` prototype: use iframe Object with cleared prototype
+
+var createDict = function () {
+  // Thrash, waste and sodomy: IE GC bug
+  var iframe = _domCreate('iframe');
+
+  var i = _enumBugKeys.length;
+  var lt = '<';
+  var gt = '>';
+  var iframeDocument;
+  iframe.style.display = 'none';
+
+  _html.appendChild(iframe);
+
+  iframe.src = 'javascript:'; // eslint-disable-line no-script-url
+  // createDict = iframe.contentWindow.Object;
+  // html.removeChild(iframe);
+
+  iframeDocument = iframe.contentWindow.document;
+  iframeDocument.open();
+  iframeDocument.write(lt + 'script' + gt + 'document.F=Object' + lt + '/script' + gt);
+  iframeDocument.close();
+  createDict = iframeDocument.F;
+
+  while (i--) delete createDict[PROTOTYPE$1][_enumBugKeys[i]];
+
+  return createDict();
+};
+
+var _objectCreate = Object.create || function create(O, Properties) {
+  var result;
+
+  if (O !== null) {
+    Empty[PROTOTYPE$1] = _anObject(O);
+    result = new Empty();
+    Empty[PROTOTYPE$1] = null; // add "__proto__" for Object.getPrototypeOf polyfill
+
+    result[IE_PROTO$1] = O;
+  } else result = createDict();
+
+  return Properties === undefined ? result : _objectDps(result, Properties);
+};
+
+var def = _objectDp.f;
+
+
+
+var TAG = _wks('toStringTag');
+
+var _setToStringTag = function (it, tag, stat) {
+  if (it && !_has(it = stat ? it : it.prototype, TAG)) def(it, TAG, {
+    configurable: true,
+    value: tag
+  });
+};
+
+var IteratorPrototype = {}; // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
+
+_hide(IteratorPrototype, _wks('iterator'), function () {
+  return this;
+});
+
+var _iterCreate = function (Constructor, NAME, next) {
+  Constructor.prototype = _objectCreate(IteratorPrototype, {
+    next: _propertyDesc(1, next)
+  });
+  _setToStringTag(Constructor, NAME + ' Iterator');
+};
+
+// 7.1.13 ToObject(argument)
+
+
+var _toObject = function (it) {
+  return Object(_defined(it));
+};
+
+// 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
+
+
+
+
+var IE_PROTO$2 = _sharedKey('IE_PROTO');
+
+var ObjectProto = Object.prototype;
+
+var _objectGpo = Object.getPrototypeOf || function (O) {
+  O = _toObject(O);
+  if (_has(O, IE_PROTO$2)) return O[IE_PROTO$2];
+
+  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
+    return O.constructor.prototype;
+  }
+
+  return O instanceof Object ? ObjectProto : null;
+};
+
+var ITERATOR = _wks('iterator');
+
+var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
+
+var FF_ITERATOR = '@@iterator';
+var KEYS = 'keys';
+var VALUES = 'values';
+
+var returnThis = function () {
+  return this;
+};
+
+var _iterDefine = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED) {
+  _iterCreate(Constructor, NAME, next);
+
+  var getMethod = function (kind) {
+    if (!BUGGY && kind in proto) return proto[kind];
+
+    switch (kind) {
+      case KEYS:
+        return function keys() {
+          return new Constructor(this, kind);
+        };
+
+      case VALUES:
+        return function values() {
+          return new Constructor(this, kind);
+        };
+    }
+
+    return function entries() {
+      return new Constructor(this, kind);
+    };
+  };
+
+  var TAG = NAME + ' Iterator';
+  var DEF_VALUES = DEFAULT == VALUES;
+  var VALUES_BUG = false;
+  var proto = Base.prototype;
+  var $native = proto[ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT];
+  var $default = $native || getMethod(DEFAULT);
+  var $entries = DEFAULT ? !DEF_VALUES ? $default : getMethod('entries') : undefined;
+  var $anyNative = NAME == 'Array' ? proto.entries || $native : $native;
+  var methods, key, IteratorPrototype; // Fix native
+
+  if ($anyNative) {
+    IteratorPrototype = _objectGpo($anyNative.call(new Base()));
+
+    if (IteratorPrototype !== Object.prototype && IteratorPrototype.next) {
+      // Set @@toStringTag to native iterators
+      _setToStringTag(IteratorPrototype, TAG, true); // fix for some old engines
+
+      if ( typeof IteratorPrototype[ITERATOR] != 'function') _hide(IteratorPrototype, ITERATOR, returnThis);
+    }
+  } // fix Array#{values, @@iterator}.name in V8 / FF
+
+
+  if (DEF_VALUES && $native && $native.name !== VALUES) {
+    VALUES_BUG = true;
+
+    $default = function values() {
+      return $native.call(this);
+    };
+  } // Define iterator
+
+
+  if ( (BUGGY || VALUES_BUG || !proto[ITERATOR])) {
+    _hide(proto, ITERATOR, $default);
+  } // Plug for library
+
+
+  _iterators[NAME] = $default;
+  _iterators[TAG] = returnThis;
+
+  if (DEFAULT) {
+    methods = {
+      values: DEF_VALUES ? $default : getMethod(VALUES),
+      keys: IS_SET ? $default : getMethod(KEYS),
+      entries: $entries
+    };
+    if (FORCED) for (key in methods) {
+      if (!(key in proto)) _redefine(proto, key, methods[key]);
+    } else _export(_export.P + _export.F * (BUGGY || VALUES_BUG), NAME, methods);
+  }
+
+  return methods;
+};
+
+// 22.1.3.4 Array.prototype.entries()
+// 22.1.3.13 Array.prototype.keys()
+// 22.1.3.29 Array.prototype.values()
+// 22.1.3.30 Array.prototype[@@iterator]()
+
+
+var es6_array_iterator = _iterDefine(Array, 'Array', function (iterated, kind) {
+  this._t = _toIobject(iterated); // target
+
+  this._i = 0; // next index
+
+  this._k = kind; // kind
+  // 22.1.5.2.1 %ArrayIteratorPrototype%.next()
+}, function () {
+  var O = this._t;
+  var kind = this._k;
+  var index = this._i++;
+
+  if (!O || index >= O.length) {
+    this._t = undefined;
+    return _iterStep(1);
+  }
+
+  if (kind == 'keys') return _iterStep(0, index);
+  if (kind == 'values') return _iterStep(0, O[index]);
+  return _iterStep(0, [index, O[index]]);
+}, 'values'); // argumentsList[@@iterator] is %ArrayProto_values% (9.4.4.6, 9.4.4.7)
+
+_iterators.Arguments = _iterators.Array;
+_addToUnscopables('keys');
+_addToUnscopables('values');
+_addToUnscopables('entries');
+
+var ITERATOR$1 = _wks('iterator');
+var TO_STRING_TAG = _wks('toStringTag');
+var ArrayValues = _iterators.Array;
+var DOMIterables = {
+  CSSRuleList: true,
+  // TODO: Not spec compliant, should be false.
+  CSSStyleDeclaration: false,
+  CSSValueList: false,
+  ClientRectList: false,
+  DOMRectList: false,
+  DOMStringList: false,
+  DOMTokenList: true,
+  DataTransferItemList: false,
+  FileList: false,
+  HTMLAllCollection: false,
+  HTMLCollection: false,
+  HTMLFormElement: false,
+  HTMLSelectElement: false,
+  MediaList: true,
+  // TODO: Not spec compliant, should be false.
+  MimeTypeArray: false,
+  NamedNodeMap: false,
+  NodeList: true,
+  PaintRequestList: false,
+  Plugin: false,
+  PluginArray: false,
+  SVGLengthList: false,
+  SVGNumberList: false,
+  SVGPathSegList: false,
+  SVGPointList: false,
+  SVGStringList: false,
+  SVGTransformList: false,
+  SourceBufferList: false,
+  StyleSheetList: true,
+  // TODO: Not spec compliant, should be false.
+  TextTrackCueList: false,
+  TextTrackList: false,
+  TouchList: false
+};
+
+for (var collections = _objectKeys(DOMIterables), i = 0; i < collections.length; i++) {
+  var NAME = collections[i];
+  var explicit = DOMIterables[NAME];
+  var Collection = _global[NAME];
+  var proto = Collection && Collection.prototype;
+  var key;
+
+  if (proto) {
+    if (!proto[ITERATOR$1]) _hide(proto, ITERATOR$1, ArrayValues);
+    if (!proto[TO_STRING_TAG]) _hide(proto, TO_STRING_TAG, NAME);
+    _iterators[NAME] = ArrayValues;
+    if (explicit) for (key in es6_array_iterator) if (!proto[key]) _redefine(proto, key, es6_array_iterator[key], true);
+  }
+}
+
+// getting tag from 19.1.3.6 Object.prototype.toString()
+
+
+var TAG$1 = _wks('toStringTag'); // ES3 wrong here
+
+
+var ARG = _cof(function () {
+  return arguments;
+}()) == 'Arguments'; // fallback for IE11 Script Access Denied error
+
+var tryGet = function (it, key) {
+  try {
+    return it[key];
+  } catch (e) {
+    /* empty */
+  }
+};
+
+var _classof = function (it) {
+  var O, T, B;
+  return it === undefined ? 'Undefined' : it === null ? 'Null' // @@toStringTag case
+  : typeof (T = tryGet(O = Object(it), TAG$1)) == 'string' ? T // builtinTag case
+  : ARG ? _cof(O) // ES3 arguments fallback
+  : (B = _cof(O)) == 'Object' && typeof O.callee == 'function' ? 'Arguments' : B;
+};
+
+var test = {};
+test[_wks('toStringTag')] = 'z';
+
+if (test + '' != '[object z]') {
+  _redefine(Object.prototype, 'toString', function toString() {
+    return '[object ' + _classof(this) + ']';
+  }, true);
+}
+
+// true  -> String#at
+// false -> String#codePointAt
+
+
+var _stringAt = function (TO_STRING) {
+  return function (that, pos) {
+    var s = String(_defined(that));
+    var i = _toInteger(pos);
+    var l = s.length;
+    var a, b;
+    if (i < 0 || i >= l) return TO_STRING ? '' : undefined;
+    a = s.charCodeAt(i);
+    return a < 0xd800 || a > 0xdbff || i + 1 === l || (b = s.charCodeAt(i + 1)) < 0xdc00 || b > 0xdfff ? TO_STRING ? s.charAt(i) : a : TO_STRING ? s.slice(i, i + 2) : (a - 0xd800 << 10) + (b - 0xdc00) + 0x10000;
+  };
+};
+
+var at = _stringAt(true); // `AdvanceStringIndex` abstract operation
+// https://tc39.github.io/ecma262/#sec-advancestringindex
+
+
+var _advanceStringIndex = function (S, index, unicode) {
+  return index + (unicode ? at(S, index).length : 1);
+};
+
+var builtinExec = RegExp.prototype.exec; // `RegExpExec` abstract operation
+// https://tc39.github.io/ecma262/#sec-regexpexec
+
+var _regexpExecAbstract = function (R, S) {
+  var exec = R.exec;
+
+  if (typeof exec === 'function') {
+    var result = exec.call(R, S);
+
+    if (typeof result !== 'object') {
+      throw new TypeError('RegExp exec method returned something other than an Object or null');
+    }
+
+    return result;
+  }
+
+  if (_classof(R) !== 'RegExp') {
+    throw new TypeError('RegExp#exec called on incompatible receiver');
+  }
+
+  return builtinExec.call(R, S);
+};
+
+var _flags = function () {
+  var that = _anObject(this);
+  var result = '';
+  if (that.global) result += 'g';
+  if (that.ignoreCase) result += 'i';
+  if (that.multiline) result += 'm';
+  if (that.unicode) result += 'u';
+  if (that.sticky) result += 'y';
+  return result;
+};
+
+var nativeExec = RegExp.prototype.exec; // This always refers to the native implementation, because the
+// String#replace polyfill uses ./fix-regexp-well-known-symbol-logic.js,
+// which loads this file before patching the method.
+
+var nativeReplace = String.prototype.replace;
+var patchedExec = nativeExec;
+var LAST_INDEX = 'lastIndex';
+
+var UPDATES_LAST_INDEX_WRONG = function () {
+  var re1 = /a/,
+      re2 = /b*/g;
+  nativeExec.call(re1, 'a');
+  nativeExec.call(re2, 'a');
+  return re1[LAST_INDEX] !== 0 || re2[LAST_INDEX] !== 0;
+}(); // nonparticipating capturing group, copied from es5-shim's String#split patch.
+
+
+var NPCG_INCLUDED = /()??/.exec('')[1] !== undefined;
+var PATCH = UPDATES_LAST_INDEX_WRONG || NPCG_INCLUDED;
+
+if (PATCH) {
+  patchedExec = function exec(str) {
+    var re = this;
+    var lastIndex, reCopy, match, i;
+
+    if (NPCG_INCLUDED) {
+      reCopy = new RegExp('^' + re.source + '$(?!\\s)', _flags.call(re));
+    }
+
+    if (UPDATES_LAST_INDEX_WRONG) lastIndex = re[LAST_INDEX];
+    match = nativeExec.call(re, str);
+
+    if (UPDATES_LAST_INDEX_WRONG && match) {
+      re[LAST_INDEX] = re.global ? match.index + match[0].length : lastIndex;
+    }
+
+    if (NPCG_INCLUDED && match && match.length > 1) {
+      // Fix browsers whose `exec` methods don't consistently return `undefined`
+      // for NPCG, like IE8. NOTE: This doesn' work for /(.?)?/
+      // eslint-disable-next-line no-loop-func
+      nativeReplace.call(match[0], reCopy, function () {
+        for (i = 1; i < arguments.length - 2; i++) {
+          if (arguments[i] === undefined) match[i] = undefined;
+        }
+      });
+    }
+
+    return match;
+  };
+}
+
+var _regexpExec = patchedExec;
 
 _export({
   target: 'RegExp',
@@ -592,23 +1013,6 @@ var _objectPie = {
 	f: f$1
 };
 
-// fallback for non-array-like ES3 and non-enumerable old V8 strings
- // eslint-disable-next-line no-prototype-builtins
-
-
-var _iobject = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
-  return _cof(it) == 'String' ? it.split('') : Object(it);
-};
-
-// to indexed object, toObject with fallback for non-array-like ES3 strings
-
-
-
-
-var _toIobject = function (it) {
-  return _iobject(_defined(it));
-};
-
 var gOPD = Object.getOwnPropertyDescriptor;
 var f$2 = _descriptors ? gOPD : function getOwnPropertyDescriptor(O, P) {
   O = _toIobject(O);
@@ -670,72 +1074,6 @@ var _inheritIfRequired = function (that, target, C) {
   return that;
 };
 
-var max = Math.max;
-var min$1 = Math.min;
-
-var _toAbsoluteIndex = function (index, length) {
-  index = _toInteger(index);
-  return index < 0 ? max(index + length, 0) : min$1(index, length);
-};
-
-// false -> Array#indexOf
-// true  -> Array#includes
-
-
-
-
-
-
-var _arrayIncludes = function (IS_INCLUDES) {
-  return function ($this, el, fromIndex) {
-    var O = _toIobject($this);
-    var length = _toLength(O.length);
-    var index = _toAbsoluteIndex(fromIndex, length);
-    var value; // Array#includes uses SameValueZero equality algorithm
-    // eslint-disable-next-line no-self-compare
-
-    if (IS_INCLUDES && el != el) while (length > index) {
-      value = O[index++]; // eslint-disable-next-line no-self-compare
-
-      if (value != value) return true; // Array#indexOf ignores holes, Array#includes - not
-    } else for (; length > index; index++) if (IS_INCLUDES || index in O) {
-      if (O[index] === el) return IS_INCLUDES || index || 0;
-    }
-    return !IS_INCLUDES && -1;
-  };
-};
-
-var shared = _shared('keys');
-
-
-
-var _sharedKey = function (key) {
-  return shared[key] || (shared[key] = _uid(key));
-};
-
-var arrayIndexOf = _arrayIncludes(false);
-
-var IE_PROTO = _sharedKey('IE_PROTO');
-
-var _objectKeysInternal = function (object, names) {
-  var O = _toIobject(object);
-  var i = 0;
-  var result = [];
-  var key;
-
-  for (key in O) if (key != IE_PROTO) _has(O, key) && result.push(key); // Don't enum bug & hidden keys
-
-
-  while (names.length > i) if (_has(O, key = names[i++])) {
-    ~arrayIndexOf(result, key) || result.push(key);
-  }
-
-  return result;
-};
-
-// IE 8- don't enum bug keys
-var _enumBugKeys = 'constructor,hasOwnProperty,isPrototypeOf,propertyIsEnumerable,toLocaleString,toString,valueOf'.split(',');
-
 // 19.1.2.7 / 15.2.3.4 Object.getOwnPropertyNames(O)
 
 
@@ -783,7 +1121,7 @@ var gOPN = _objectGopn.f;
 
 var $RegExp = _global.RegExp;
 var Base = $RegExp;
-var proto = $RegExp.prototype;
+var proto$1 = $RegExp.prototype;
 var re1 = /a/g;
 var re2 = /a/g; // "new" creates a new object, old webkit buggy here
 
@@ -798,7 +1136,7 @@ if (_descriptors && (!CORRECT_NEW || _fails(function () {
     var tiRE = this instanceof $RegExp;
     var piRE = _isRegexp(p);
     var fiU = f === undefined;
-    return !tiRE && piRE && p.constructor === $RegExp && fiU ? p : _inheritIfRequired(CORRECT_NEW ? new Base(piRE && !fiU ? p.source : p, f) : Base((piRE = p instanceof $RegExp) ? p.source : p, piRE && fiU ? _flags.call(p) : f), tiRE ? this : proto, $RegExp);
+    return !tiRE && piRE && p.constructor === $RegExp && fiU ? p : _inheritIfRequired(CORRECT_NEW ? new Base(piRE && !fiU ? p.source : p, f) : Base((piRE = p instanceof $RegExp) ? p.source : p, piRE && fiU ? _flags.call(p) : f), tiRE ? this : proto$1, $RegExp);
   };
 
   var proxy = function (key) {
@@ -813,10 +1151,10 @@ if (_descriptors && (!CORRECT_NEW || _fails(function () {
     });
   };
 
-  for (var keys = gOPN(Base), i = 0; keys.length > i;) proxy(keys[i++]);
+  for (var keys = gOPN(Base), i$1 = 0; keys.length > i$1;) proxy(keys[i$1++]);
 
-  proto.constructor = $RegExp;
-  $RegExp.prototype = proto;
+  proto$1.constructor = $RegExp;
+  $RegExp.prototype = proto$1;
 
   _redefine(_global, 'RegExp', $RegExp);
 }
@@ -924,5 +1262,22 @@ function randomNumInteger(min, max) {
       return 0;
   }
 }
+/**
+ * equals 是否全等 - object | array | string | number | function
+ * @function equals
+ * @return { boolean } - true/false
+ */
 
-export { RandomNum, deepClone, getQueryString, isObject, objIsEqual, randomNumInteger };
+var equals = function equals(a, b) {
+  if (a === b) return true;
+  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime();
+  if (!a || !b || typeof a !== 'object' && typeof b !== 'object') return a === b;
+  if (a.prototype !== b.prototype) return false;
+  var keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every(function (k) {
+    return equals(a[k], b[k]);
+  });
+};
+
+export { RandomNum, deepClone, equals, getQueryString, isObject, objIsEqual, randomNumInteger };

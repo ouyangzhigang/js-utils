@@ -718,7 +718,7 @@ var hideTag = function hideTag() {
  */
 
 var getStyle = function getStyle(el, ruleName) {
-  return getComputedStyle(el)[ruleName];
+  return window.getComputedStyle(el)[ruleName];
 };
 /**
  * 检查是否包含子元素
@@ -746,5 +746,15 @@ var escapeHTML = function escapeHTML(str) {
     }[tag] || tag;
   });
 };
+/**
+ * 删除字符串中的HTMl标签
+ * @name stripHTMLTags
+ * @param { string } - str - html模版
+ * @return { string }
+ */
 
-export { $$, elementContains, escapeHTML, getStyle, hideTag };
+var stripHTMLTags = function stripHTMLTags(str) {
+  return str.replace(/<[^>]*>/g, '');
+};
+
+export { $$, elementContains, escapeHTML, getStyle, hideTag, stripHTMLTags };

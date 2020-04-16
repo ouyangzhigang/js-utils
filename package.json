@@ -33,7 +33,7 @@
     "build": "npx rollup -c rollup/config.js",
     "build:es": "npx rollup -c rollup/es.config.js",
     "build:dist": "npx rollup -c rollup/dist.config.js",
-    "docs": "npx jsdoc2md chunks/*.js > README.md",
+    "docs": "npx jsdoc2md chunks/*.js > API_README.md",
     "eslint": "./node_modules/.bin/eslint --init"
   },
   "devDependencies": {

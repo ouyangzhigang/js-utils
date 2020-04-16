@@ -1,3 +1,31 @@
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
+var _global = createCommonjsModule(function (module) {
+// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
+var global = module.exports = typeof window != 'undefined' && window.Math == Math ? window : typeof self != 'undefined' && self.Math == Math ? self // eslint-disable-next-line no-new-func
+: Function('return this')();
+if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
+});
+
+var _core = createCommonjsModule(function (module) {
+var core = module.exports = {
+  version: '2.6.11'
+};
+if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
+});
+var _core_1 = _core.version;
+
+var _isObject = function (it) {
+  return typeof it === 'object' ? it !== null : typeof it === 'function';
+};
+
+var _anObject = function (it) {
+  if (!_isObject(it)) throw TypeError(it + ' is not an object!');
+  return it;
+};
+
 var _fails = function (exec) {
   try {
     return !!exec();
@@ -13,26 +41,6 @@ var _descriptors = !_fails(function () {
       return 7;
     }
   }).a != 7;
-});
-
-var _isObject = function (it) {
-  return typeof it === 'object' ? it !== null : typeof it === 'function';
-};
-
-var _anObject = function (it) {
-  if (!_isObject(it)) throw TypeError(it + ' is not an object!');
-  return it;
-};
-
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
-}
-
-var _global = createCommonjsModule(function (module) {
-// https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
-var global = module.exports = typeof window != 'undefined' && window.Math == Math ? window : typeof self != 'undefined' && self.Math == Math ? self // eslint-disable-next-line no-new-func
-: Function('return this')();
-if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
 });
 
 var document = _global.document; // typeof document.createElement is 'object' in old IE
@@ -85,23 +93,6 @@ var _objectDp = {
 	f: f
 };
 
-var _flags = function () {
-  var that = _anObject(this);
-  var result = '';
-  if (that.global) result += 'g';
-  if (that.ignoreCase) result += 'i';
-  if (that.multiline) result += 'm';
-  if (that.unicode) result += 'u';
-  if (that.sticky) result += 'y';
-  return result;
-};
-
-// 21.2.5.3 get RegExp.prototype.flags()
-if (_descriptors && /./g.flags != 'g') _objectDp.f(RegExp.prototype, 'flags', {
-  configurable: true,
-  get: _flags
-});
-
 var _propertyDesc = function (bitmap, value) {
   return {
     enumerable: !(bitmap & 1),
@@ -130,14 +121,6 @@ var px = Math.random();
 var _uid = function (key) {
   return 'Symbol('.concat(key === undefined ? '' : key, ')_', (++id + px).toString(36));
 };
-
-var _core = createCommonjsModule(function (module) {
-var core = module.exports = {
-  version: '2.6.11'
-};
-if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
-});
-var _core_1 = _core.version;
 
 var _shared = createCommonjsModule(function (module) {
 var SHARED = '__core-js_shared__';
@@ -187,6 +170,227 @@ _core.inspectSource = function (it) {
 });
 });
 
+var _aFunction = function (it) {
+  if (typeof it != 'function') throw TypeError(it + ' is not a function!');
+  return it;
+};
+
+// optional / simple context binding
+
+
+var _ctx = function (fn, that, length) {
+  _aFunction(fn);
+  if (that === undefined) return fn;
+
+  switch (length) {
+    case 1:
+      return function (a) {
+        return fn.call(that, a);
+      };
+
+    case 2:
+      return function (a, b) {
+        return fn.call(that, a, b);
+      };
+
+    case 3:
+      return function (a, b, c) {
+        return fn.call(that, a, b, c);
+      };
+  }
+
+  return function ()
+  /* ...args */
+  {
+    return fn.apply(that, arguments);
+  };
+};
+
+var PROTOTYPE = 'prototype';
+
+var $export = function (type, name, source) {
+  var IS_FORCED = type & $export.F;
+  var IS_GLOBAL = type & $export.G;
+  var IS_STATIC = type & $export.S;
+  var IS_PROTO = type & $export.P;
+  var IS_BIND = type & $export.B;
+  var target = IS_GLOBAL ? _global : IS_STATIC ? _global[name] || (_global[name] = {}) : (_global[name] || {})[PROTOTYPE];
+  var exports = IS_GLOBAL ? _core : _core[name] || (_core[name] = {});
+  var expProto = exports[PROTOTYPE] || (exports[PROTOTYPE] = {});
+  var key, own, out, exp;
+  if (IS_GLOBAL) source = name;
+
+  for (key in source) {
+    // contains in native
+    own = !IS_FORCED && target && target[key] !== undefined; // export native or passed
+
+    out = (own ? target : source)[key]; // bind timers to global for call from export context
+
+    exp = IS_BIND && own ? _ctx(out, _global) : IS_PROTO && typeof out == 'function' ? _ctx(Function.call, out) : out; // extend global
+
+    if (target) _redefine(target, key, out, type & $export.U); // export
+
+    if (exports[key] != out) _hide(exports, key, exp);
+    if (IS_PROTO && expProto[key] != out) expProto[key] = out;
+  }
+};
+
+_global.core = _core; // type bitmap
+
+$export.F = 1; // forced
+
+$export.G = 2; // global
+
+$export.S = 4; // static
+
+$export.P = 8; // proto
+
+$export.B = 16; // bind
+
+$export.W = 32; // wrap
+
+$export.U = 64; // safe
+
+$export.R = 128; // real proto method for `library`
+
+var _export = $export;
+
+var toString = {}.toString;
+
+var _cof = function (it) {
+  return toString.call(it).slice(8, -1);
+};
+
+// fallback for non-array-like ES3 and non-enumerable old V8 strings
+ // eslint-disable-next-line no-prototype-builtins
+
+
+var _iobject = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
+  return _cof(it) == 'String' ? it.split('') : Object(it);
+};
+
+// 7.2.1 RequireObjectCoercible(argument)
+var _defined = function (it) {
+  if (it == undefined) throw TypeError("Can't call method on  " + it);
+  return it;
+};
+
+// to indexed object, toObject with fallback for non-array-like ES3 strings
+
+
+
+
+var _toIobject = function (it) {
+  return _iobject(_defined(it));
+};
+
+// 7.1.4 ToInteger
+var ceil = Math.ceil;
+var floor = Math.floor;
+
+var _toInteger = function (it) {
+  return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
+};
+
+// 7.1.15 ToLength
+
+
+var min = Math.min;
+
+var _toLength = function (it) {
+  return it > 0 ? min(_toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
+};
+
+var max = Math.max;
+var min$1 = Math.min;
+
+var _toAbsoluteIndex = function (index, length) {
+  index = _toInteger(index);
+  return index < 0 ? max(index + length, 0) : min$1(index, length);
+};
+
+// false -> Array#indexOf
+// true  -> Array#includes
+
+
+
+
+
+
+var _arrayIncludes = function (IS_INCLUDES) {
+  return function ($this, el, fromIndex) {
+    var O = _toIobject($this);
+    var length = _toLength(O.length);
+    var index = _toAbsoluteIndex(fromIndex, length);
+    var value; // Array#includes uses SameValueZero equality algorithm
+    // eslint-disable-next-line no-self-compare
+
+    if (IS_INCLUDES && el != el) while (length > index) {
+      value = O[index++]; // eslint-disable-next-line no-self-compare
+
+      if (value != value) return true; // Array#indexOf ignores holes, Array#includes - not
+    } else for (; length > index; index++) if (IS_INCLUDES || index in O) {
+      if (O[index] === el) return IS_INCLUDES || index || 0;
+    }
+    return !IS_INCLUDES && -1;
+  };
+};
+
+var _wks = createCommonjsModule(function (module) {
+var store = _shared('wks');
+
+
+
+var Symbol = _global.Symbol;
+
+var USE_SYMBOL = typeof Symbol == 'function';
+
+var $exports = module.exports = function (name) {
+  return store[name] || (store[name] = USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : _uid)('Symbol.' + name));
+};
+
+$exports.store = store;
+});
+
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = _wks('unscopables');
+
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) _hide(ArrayProto, UNSCOPABLES, {});
+
+var _addToUnscopables = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
+var $includes = _arrayIncludes(true);
+
+_export(_export.P, 'Array', {
+  includes: function includes(el
+  /* , fromIndex = 0 */
+  ) {
+    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
+  }
+});
+
+_addToUnscopables('includes');
+
+var _flags = function () {
+  var that = _anObject(this);
+  var result = '';
+  if (that.global) result += 'g';
+  if (that.ignoreCase) result += 'i';
+  if (that.multiline) result += 'm';
+  if (that.unicode) result += 'u';
+  if (that.sticky) result += 'y';
+  return result;
+};
+
+// 21.2.5.3 get RegExp.prototype.flags()
+if (_descriptors && /./g.flags != 'g') _objectDp.f(RegExp.prototype, 'flags', {
+  configurable: true,
+  get: _flags
+});
+
 var TO_STRING = 'toString';
 var $toString = /./[TO_STRING];
 
@@ -210,28 +414,6 @@ if (_fails(function () {
     return $toString.call(this);
   });
 }
-
-var toString = {}.toString;
-
-var _cof = function (it) {
-  return toString.call(it).slice(8, -1);
-};
-
-var _wks = createCommonjsModule(function (module) {
-var store = _shared('wks');
-
-
-
-var Symbol = _global.Symbol;
-
-var USE_SYMBOL = typeof Symbol == 'function';
-
-var $exports = module.exports = function (name) {
-  return store[name] || (store[name] = USE_SYMBOL && Symbol[name] || (USE_SYMBOL ? Symbol : _uid)('Symbol.' + name));
-};
-
-$exports.store = store;
-});
 
 // getting tag from 19.1.3.6 Object.prototype.toString()
 
@@ -268,34 +450,11 @@ if (test + '' != '[object z]') {
   }, true);
 }
 
-// 7.2.1 RequireObjectCoercible(argument)
-var _defined = function (it) {
-  if (it == undefined) throw TypeError("Can't call method on  " + it);
-  return it;
-};
-
 // 7.1.13 ToObject(argument)
 
 
 var _toObject = function (it) {
   return Object(_defined(it));
-};
-
-// 7.1.4 ToInteger
-var ceil = Math.ceil;
-var floor = Math.floor;
-
-var _toInteger = function (it) {
-  return isNaN(it = +it) ? 0 : (it > 0 ? floor : ceil)(it);
-};
-
-// 7.1.15 ToLength
-
-
-var min = Math.min;
-
-var _toLength = function (it) {
-  return it > 0 ? min(_toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
 };
 
 // true  -> String#at
@@ -397,91 +556,6 @@ if (PATCH) {
 }
 
 var _regexpExec = patchedExec;
-
-var _aFunction = function (it) {
-  if (typeof it != 'function') throw TypeError(it + ' is not a function!');
-  return it;
-};
-
-// optional / simple context binding
-
-
-var _ctx = function (fn, that, length) {
-  _aFunction(fn);
-  if (that === undefined) return fn;
-
-  switch (length) {
-    case 1:
-      return function (a) {
-        return fn.call(that, a);
-      };
-
-    case 2:
-      return function (a, b) {
-        return fn.call(that, a, b);
-      };
-
-    case 3:
-      return function (a, b, c) {
-        return fn.call(that, a, b, c);
-      };
-  }
-
-  return function ()
-  /* ...args */
-  {
-    return fn.apply(that, arguments);
-  };
-};
-
-var PROTOTYPE = 'prototype';
-
-var $export = function (type, name, source) {
-  var IS_FORCED = type & $export.F;
-  var IS_GLOBAL = type & $export.G;
-  var IS_STATIC = type & $export.S;
-  var IS_PROTO = type & $export.P;
-  var IS_BIND = type & $export.B;
-  var target = IS_GLOBAL ? _global : IS_STATIC ? _global[name] || (_global[name] = {}) : (_global[name] || {})[PROTOTYPE];
-  var exports = IS_GLOBAL ? _core : _core[name] || (_core[name] = {});
-  var expProto = exports[PROTOTYPE] || (exports[PROTOTYPE] = {});
-  var key, own, out, exp;
-  if (IS_GLOBAL) source = name;
-
-  for (key in source) {
-    // contains in native
-    own = !IS_FORCED && target && target[key] !== undefined; // export native or passed
-
-    out = (own ? target : source)[key]; // bind timers to global for call from export context
-
-    exp = IS_BIND && own ? _ctx(out, _global) : IS_PROTO && typeof out == 'function' ? _ctx(Function.call, out) : out; // extend global
-
-    if (target) _redefine(target, key, out, type & $export.U); // export
-
-    if (exports[key] != out) _hide(exports, key, exp);
-    if (IS_PROTO && expProto[key] != out) expProto[key] = out;
-  }
-};
-
-_global.core = _core; // type bitmap
-
-$export.F = 1; // forced
-
-$export.G = 2; // global
-
-$export.S = 4; // static
-
-$export.P = 8; // proto
-
-$export.B = 16; // bind
-
-$export.W = 32; // wrap
-
-$export.U = 64; // safe
-
-$export.R = 128; // real proto method for `library`
-
-var _export = $export;
 
 _export({
   target: 'RegExp',
@@ -597,8 +671,8 @@ var _fixReWks = function (KEY, length, exec) {
   }
 };
 
-var max = Math.max;
-var min$1 = Math.min;
+var max$1 = Math.max;
+var min$2 = Math.min;
 var floor$1 = Math.floor;
 var SUBSTITUTION_SYMBOLS = /\$([$&`']|\d\d?|<[^>]*>)/g;
 var SUBSTITUTION_SYMBOLS_NO_NAMED = /\$([$&`']|\d\d?)/g;
@@ -648,7 +722,7 @@ _fixReWks('replace', 2, function (defined, REPLACE, $replace, maybeCallNative) {
     for (var i = 0; i < results.length; i++) {
       result = results[i];
       var matched = String(result[0]);
-      var position = max(min$1(_toInteger(result.index), S.length), 0);
+      var position = max$1(min$2(_toInteger(result.index), S.length), 0);
       var captures = []; // NOTE: This is equivalent to
       //   captures = result.slice(1).map(maybeToString)
       // but for some reason `nativeSlice.call(result, 1, result.length)` (called in
@@ -771,6 +845,10 @@ function getTreeData(data, pid) {
  */
 
 function inArray(item, data) {
+  if ('includes' in []) {
+    return data.includes(item);
+  }
+
   for (var i = 0; i < data.length; i++) {
     if (item === data[i]) {
       return i;
@@ -790,5 +868,158 @@ function countOccurrences(arr, value) {
     return v === value ? a + 1 : a + 0;
   }, 0);
 }
+/**
+ * 阶乘算法 factorialize
+ * @param { number } - number
+ * @name factorialize
+ * @returns { number } - factorialize
+ */
 
-export { countOccurrences, formatMoney, getTreeData, inArray };
+var factorialize = function factorialize(num) {
+  if (num < 0) return -1;
+  if (num === 0 || num === 1) return 1;
+
+  if (num > 1) {
+    return num * factorialize(num - 1);
+  }
+};
+/**
+ * 生成菲波那切数列 getFibonacci
+ * @param { number } - number
+ * @name getFibonacci
+ * @returns { number } - value
+ */
+
+var getFibonacci = function getFibonacci(num) {
+  var fibona = [];
+  var i = 0;
+
+  while (i < num) {
+    if (i <= 1) {
+      fibona.push(i);
+    } else {
+      fibona.push(fibona[i - 1] + fibona[i - 2]);
+    }
+
+    i++;
+  }
+
+  return fibona;
+};
+/**
+ * quick sort calculator
+ * @function quickSort
+ * @param { Array } - arr - 数组
+ * @returns { Array } - arr - 序列后数组
+ */
+
+var quickSort = function quickSort(arr) {
+  var specimen = arr[0];
+  var leftArr = [];
+  var rightArr = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] >= specimen) rightArr.push(arr[i]);else leftArr.push(arr[i]);
+  }
+
+  return quickSort(leftArr).concat([specimen], quickSort(rightArr));
+};
+/**
+ * bubble sort calculator
+ * @function bubbleSort
+ * @param { Array } - arr - 数组
+ * @returns { Array } - arr - 序列后数组
+ */
+
+var bubbleSort = function bubbleSort(arr) {
+  var temp = null;
+
+  for (var i = 0; i < arr.length; i++) {
+    for (var j = 0; j < arr.length - i - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        /** console.time('bubbel') => console.timeEnd('bubbel'): 0.093994140625ms */
+        // [arr[j], arr[j + 1]] = ((a, b) => [b, a])(arr[j], arr[j + 1])
+
+        /** console.time('bubbels') => console.timeEnd('bubbels'): 0.02685546875ms */
+        temp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = temp;
+        /**
+          for (let j = 0; j < arr.length - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = swap(arr[j], arr[j+1])
+              }
+            }
+          }
+          console.timeEnd('bubbelss')
+          function swap(a, b) {return [b, a]}
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.093994140625ms
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.02685546875ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.025146484375ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02392578125ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02392578125ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02392578125ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.015869140625ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.015869140625ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.01708984375ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.015869140625ms
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.075927734375ms
+          undefined
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.015869140625ms
+          undefined
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.016845703125ms
+          undefined
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.016357421875ms
+          undefined
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.015869140625ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.015869140625ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.01611328125ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.01513671875ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.025146484375ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02392578125ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02685546875ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02490234375ms
+         */
+      }
+    }
+  }
+};
+
+export { bubbleSort, countOccurrences, factorialize, formatMoney, getFibonacci, getTreeData, inArray, quickSort };

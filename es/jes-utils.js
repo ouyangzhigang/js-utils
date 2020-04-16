@@ -689,6 +689,45 @@ _fixReWks('replace', 2, function (defined, REPLACE, $replace, maybeCallNative) {
   }
 });
 
+// 21.2.5.3 get RegExp.prototype.flags()
+if (_descriptors && /./g.flags != 'g') _objectDp.f(RegExp.prototype, 'flags', {
+  configurable: true,
+  get: _flags
+});
+
+var TO_STRING = 'toString';
+var $toString = /./[TO_STRING];
+
+var define = function (fn) {
+  _redefine(RegExp.prototype, TO_STRING, fn, true);
+}; // 21.2.5.14 RegExp.prototype.toString()
+
+
+if (_fails(function () {
+  return $toString.call({
+    source: 'a',
+    flags: 'b'
+  }) != '/a/b';
+})) {
+  define(function toString() {
+    var R = _anObject(this);
+    return '/'.concat(R.source, '/', 'flags' in R ? R.flags : !_descriptors && R instanceof RegExp ? _flags.call(R) : undefined);
+  }); // FF44- RegExp#toString has a wrong name
+} else if ($toString.name != TO_STRING) {
+  define(function toString() {
+    return $toString.call(this);
+  });
+}
+
+var test = {};
+test[_wks('toStringTag')] = 'z';
+
+if (test + '' != '[object z]') {
+  _redefine(Object.prototype, 'toString', function toString() {
+    return '[object ' + _classof(this) + ']';
+  }, true);
+}
+
 // 7.2.8 IsRegExp(argument)
 
 
@@ -1183,13 +1222,13 @@ function getUrlParams(name) {
  * @param { string } paramName
  * @param { string } replaceWith
  */
-// export function replaceParamVal(paramName,replaceWith) {
-//   var oUrl = location.href.toString();
-//   // var re= eval('/('+ paramName+'=)([^&]*)/gi');
-//   location.href = oUrl.replace(re,paramName+'='+replaceWith);
-//   return location.href;
-// }
 
+function replaceParamVal(paramName, replaceWith) {
+  var oUrl = location.href.toString();
+  var re = Function('/(' + paramName + '=)([^&]*)/gi')();
+  location.href = oUrl.replace(re, paramName + '=' + replaceWith);
+  return location.href;
+}
 /**
  * @function funcUrlDel
  * @name funcUrlDel
@@ -1358,7 +1397,7 @@ function openWindow(url, windowName, width, height) {
     window.open(url, windowName, p);
   } else {
     var win = window.open(url, "ZyiisPopup", "top=" + y + ",left=" + x + ",scrollbars=" + scrollbars + ",dialog=yes,modal=yes,width=" + width + ",height=" + height + ",resizable=no");
-    eval("try { win.resizeTo(width, height); } catch(e) { }");
+    Function("try { win.resizeTo(width, height); } catch(e) { }")();
     win.focus();
   }
 }
@@ -1422,12 +1461,33 @@ function AutoResponse() {
   var target = document.documentElement;
   target.clientWidth >= 600 ? target.style.fontSize = "80px" : target.style.fontSize = target.clientWidth / width * 100 + "px";
 }
+/**
+ * requestAnimationFrame 制作动画
+ * @returns {function} - 动画全局对象
+ */
+
+var requestAnimFrame = function () {
+  return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (a) {
+    window.setTimeout(a, 1e3 / 60, new Date().getTime());
+  };
+}();
+/**
+ * cancelAnimFrame 取消动画
+ * @returns {function} - 动画全局对象
+ */
+
+var cancelAnimFrame = function () {
+  return window.cancelAnimationFrame || window.webkitCancelAnimationFrame || window.mozCancelAnimationFrame || function (id) {
+    clearTimeout(id);
+  };
+}();
 
 var Bower = /*#__PURE__*/Object.freeze({
   __proto__: null,
   currentURL: currentURL,
   getUrlParam: getUrlParam,
   getUrlParams: getUrlParams,
+  replaceParamVal: replaceParamVal,
   funcUrlDel: funcUrlDel,
   getClientHeight: getClientHeight,
   getPageViewWidth: getPageViewWidth,
@@ -1442,8 +1502,332 @@ var Bower = /*#__PURE__*/Object.freeze({
   getScrollPosition: getScrollPosition,
   exitFullscreen: exitFullscreen,
   getQueryString: getQueryString,
-  AutoResponse: AutoResponse
+  AutoResponse: AutoResponse,
+  requestAnimFrame: requestAnimFrame,
+  cancelAnimFrame: cancelAnimFrame
 });
+
+// 22.1.3.31 Array.prototype[@@unscopables]
+var UNSCOPABLES = _wks('unscopables');
+
+var ArrayProto = Array.prototype;
+if (ArrayProto[UNSCOPABLES] == undefined) _hide(ArrayProto, UNSCOPABLES, {});
+
+var _addToUnscopables = function (key) {
+  ArrayProto[UNSCOPABLES][key] = true;
+};
+
+var _iterStep = function (done, value) {
+  return {
+    value: value,
+    done: !!done
+  };
+};
+
+var _iterators = {};
+
+// 19.1.2.14 / 15.2.3.14 Object.keys(O)
+
+
+
+
+var _objectKeys = Object.keys || function keys(O) {
+  return _objectKeysInternal(O, _enumBugKeys);
+};
+
+var _objectDps = _descriptors ? Object.defineProperties : function defineProperties(O, Properties) {
+  _anObject(O);
+  var keys = _objectKeys(Properties);
+  var length = keys.length;
+  var i = 0;
+  var P;
+
+  while (length > i) _objectDp.f(O, P = keys[i++], Properties[P]);
+
+  return O;
+};
+
+var document$2 = _global.document;
+
+var _html = document$2 && document$2.documentElement;
+
+// 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
+
+
+
+
+
+
+var IE_PROTO$1 = _sharedKey('IE_PROTO');
+
+var Empty = function () {
+  /* empty */
+};
+
+var PROTOTYPE$1 = 'prototype'; // Create object with fake `null` prototype: use iframe Object with cleared prototype
+
+var createDict = function () {
+  // Thrash, waste and sodomy: IE GC bug
+  var iframe = _domCreate('iframe');
+
+  var i = _enumBugKeys.length;
+  var lt = '<';
+  var gt = '>';
+  var iframeDocument;
+  iframe.style.display = 'none';
+
+  _html.appendChild(iframe);
+
+  iframe.src = 'javascript:'; // eslint-disable-line no-script-url
+  // createDict = iframe.contentWindow.Object;
+  // html.removeChild(iframe);
+
+  iframeDocument = iframe.contentWindow.document;
+  iframeDocument.open();
+  iframeDocument.write(lt + 'script' + gt + 'document.F=Object' + lt + '/script' + gt);
+  iframeDocument.close();
+  createDict = iframeDocument.F;
+
+  while (i--) delete createDict[PROTOTYPE$1][_enumBugKeys[i]];
+
+  return createDict();
+};
+
+var _objectCreate = Object.create || function create(O, Properties) {
+  var result;
+
+  if (O !== null) {
+    Empty[PROTOTYPE$1] = _anObject(O);
+    result = new Empty();
+    Empty[PROTOTYPE$1] = null; // add "__proto__" for Object.getPrototypeOf polyfill
+
+    result[IE_PROTO$1] = O;
+  } else result = createDict();
+
+  return Properties === undefined ? result : _objectDps(result, Properties);
+};
+
+var def = _objectDp.f;
+
+
+
+var TAG$1 = _wks('toStringTag');
+
+var _setToStringTag = function (it, tag, stat) {
+  if (it && !_has(it = stat ? it : it.prototype, TAG$1)) def(it, TAG$1, {
+    configurable: true,
+    value: tag
+  });
+};
+
+var IteratorPrototype = {}; // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
+
+_hide(IteratorPrototype, _wks('iterator'), function () {
+  return this;
+});
+
+var _iterCreate = function (Constructor, NAME, next) {
+  Constructor.prototype = _objectCreate(IteratorPrototype, {
+    next: _propertyDesc(1, next)
+  });
+  _setToStringTag(Constructor, NAME + ' Iterator');
+};
+
+// 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
+
+
+
+
+var IE_PROTO$2 = _sharedKey('IE_PROTO');
+
+var ObjectProto = Object.prototype;
+
+var _objectGpo = Object.getPrototypeOf || function (O) {
+  O = _toObject(O);
+  if (_has(O, IE_PROTO$2)) return O[IE_PROTO$2];
+
+  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
+    return O.constructor.prototype;
+  }
+
+  return O instanceof Object ? ObjectProto : null;
+};
+
+var ITERATOR = _wks('iterator');
+
+var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
+
+var FF_ITERATOR = '@@iterator';
+var KEYS = 'keys';
+var VALUES = 'values';
+
+var returnThis = function () {
+  return this;
+};
+
+var _iterDefine = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED) {
+  _iterCreate(Constructor, NAME, next);
+
+  var getMethod = function (kind) {
+    if (!BUGGY && kind in proto) return proto[kind];
+
+    switch (kind) {
+      case KEYS:
+        return function keys() {
+          return new Constructor(this, kind);
+        };
+
+      case VALUES:
+        return function values() {
+          return new Constructor(this, kind);
+        };
+    }
+
+    return function entries() {
+      return new Constructor(this, kind);
+    };
+  };
+
+  var TAG = NAME + ' Iterator';
+  var DEF_VALUES = DEFAULT == VALUES;
+  var VALUES_BUG = false;
+  var proto = Base.prototype;
+  var $native = proto[ITERATOR] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT];
+  var $default = $native || getMethod(DEFAULT);
+  var $entries = DEFAULT ? !DEF_VALUES ? $default : getMethod('entries') : undefined;
+  var $anyNative = NAME == 'Array' ? proto.entries || $native : $native;
+  var methods, key, IteratorPrototype; // Fix native
+
+  if ($anyNative) {
+    IteratorPrototype = _objectGpo($anyNative.call(new Base()));
+
+    if (IteratorPrototype !== Object.prototype && IteratorPrototype.next) {
+      // Set @@toStringTag to native iterators
+      _setToStringTag(IteratorPrototype, TAG, true); // fix for some old engines
+
+      if ( typeof IteratorPrototype[ITERATOR] != 'function') _hide(IteratorPrototype, ITERATOR, returnThis);
+    }
+  } // fix Array#{values, @@iterator}.name in V8 / FF
+
+
+  if (DEF_VALUES && $native && $native.name !== VALUES) {
+    VALUES_BUG = true;
+
+    $default = function values() {
+      return $native.call(this);
+    };
+  } // Define iterator
+
+
+  if ( (BUGGY || VALUES_BUG || !proto[ITERATOR])) {
+    _hide(proto, ITERATOR, $default);
+  } // Plug for library
+
+
+  _iterators[NAME] = $default;
+  _iterators[TAG] = returnThis;
+
+  if (DEFAULT) {
+    methods = {
+      values: DEF_VALUES ? $default : getMethod(VALUES),
+      keys: IS_SET ? $default : getMethod(KEYS),
+      entries: $entries
+    };
+    if (FORCED) for (key in methods) {
+      if (!(key in proto)) _redefine(proto, key, methods[key]);
+    } else _export(_export.P + _export.F * (BUGGY || VALUES_BUG), NAME, methods);
+  }
+
+  return methods;
+};
+
+// 22.1.3.4 Array.prototype.entries()
+// 22.1.3.13 Array.prototype.keys()
+// 22.1.3.29 Array.prototype.values()
+// 22.1.3.30 Array.prototype[@@iterator]()
+
+
+var es6_array_iterator = _iterDefine(Array, 'Array', function (iterated, kind) {
+  this._t = _toIobject(iterated); // target
+
+  this._i = 0; // next index
+
+  this._k = kind; // kind
+  // 22.1.5.2.1 %ArrayIteratorPrototype%.next()
+}, function () {
+  var O = this._t;
+  var kind = this._k;
+  var index = this._i++;
+
+  if (!O || index >= O.length) {
+    this._t = undefined;
+    return _iterStep(1);
+  }
+
+  if (kind == 'keys') return _iterStep(0, index);
+  if (kind == 'values') return _iterStep(0, O[index]);
+  return _iterStep(0, [index, O[index]]);
+}, 'values'); // argumentsList[@@iterator] is %ArrayProto_values% (9.4.4.6, 9.4.4.7)
+
+_iterators.Arguments = _iterators.Array;
+_addToUnscopables('keys');
+_addToUnscopables('values');
+_addToUnscopables('entries');
+
+var ITERATOR$1 = _wks('iterator');
+var TO_STRING_TAG = _wks('toStringTag');
+var ArrayValues = _iterators.Array;
+var DOMIterables = {
+  CSSRuleList: true,
+  // TODO: Not spec compliant, should be false.
+  CSSStyleDeclaration: false,
+  CSSValueList: false,
+  ClientRectList: false,
+  DOMRectList: false,
+  DOMStringList: false,
+  DOMTokenList: true,
+  DataTransferItemList: false,
+  FileList: false,
+  HTMLAllCollection: false,
+  HTMLCollection: false,
+  HTMLFormElement: false,
+  HTMLSelectElement: false,
+  MediaList: true,
+  // TODO: Not spec compliant, should be false.
+  MimeTypeArray: false,
+  NamedNodeMap: false,
+  NodeList: true,
+  PaintRequestList: false,
+  Plugin: false,
+  PluginArray: false,
+  SVGLengthList: false,
+  SVGNumberList: false,
+  SVGPathSegList: false,
+  SVGPointList: false,
+  SVGStringList: false,
+  SVGTransformList: false,
+  SourceBufferList: false,
+  StyleSheetList: true,
+  // TODO: Not spec compliant, should be false.
+  TextTrackCueList: false,
+  TextTrackList: false,
+  TouchList: false
+};
+
+for (var collections = _objectKeys(DOMIterables), i$1 = 0; i$1 < collections.length; i$1++) {
+  var NAME = collections[i$1];
+  var explicit = DOMIterables[NAME];
+  var Collection = _global[NAME];
+  var proto$1 = Collection && Collection.prototype;
+  var key;
+
+  if (proto$1) {
+    if (!proto$1[ITERATOR$1]) _hide(proto$1, ITERATOR$1, ArrayValues);
+    if (!proto$1[TO_STRING_TAG]) _hide(proto$1, TO_STRING_TAG, NAME);
+    _iterators[NAME] = ArrayValues;
+    if (explicit) for (key in es6_array_iterator) if (!proto$1[key]) _redefine(proto$1, key, es6_array_iterator[key], true);
+  }
+}
 
 /**
  * @function deepClone
@@ -1546,6 +1930,23 @@ function randomNumInteger(min, max) {
       return 0;
   }
 }
+/**
+ * equals 是否全等 - object | array | string | number | function
+ * @function equals
+ * @return { boolean } - true/false
+ */
+
+var equals = function equals(a, b) {
+  if (a === b) return true;
+  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime();
+  if (!a || !b || typeof a !== 'object' && typeof b !== 'object') return a === b;
+  if (a.prototype !== b.prototype) return false;
+  var keys = Object.keys(a);
+  if (keys.length !== Object.keys(b).length) return false;
+  return keys.every(function (k) {
+    return equals(a[k], b[k]);
+  });
+};
 
 var Common = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -1554,7 +1955,8 @@ var Common = /*#__PURE__*/Object.freeze({
   getQueryString: getQueryString$1,
   objIsEqual: objIsEqual,
   RandomNum: RandomNum,
-  randomNumInteger: randomNumInteger
+  randomNumInteger: randomNumInteger,
+  equals: equals
 });
 
 /**
@@ -1588,7 +1990,7 @@ var hideTag = function hideTag() {
  */
 
 var getStyle = function getStyle(el, ruleName) {
-  return getComputedStyle(el)[ruleName];
+  return window.getComputedStyle(el)[ruleName];
 };
 /**
  * 检查是否包含子元素
@@ -1616,6 +2018,16 @@ var escapeHTML = function escapeHTML(str) {
     }[tag] || tag;
   });
 };
+/**
+ * 删除字符串中的HTMl标签
+ * @name stripHTMLTags
+ * @param { string } - str - html模版
+ * @return { string }
+ */
+
+var stripHTMLTags = function stripHTMLTags(str) {
+  return str.replace(/<[^>]*>/g, '');
+};
 
 var Dom = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -1623,7 +2035,8 @@ var Dom = /*#__PURE__*/Object.freeze({
   hideTag: hideTag,
   getStyle: getStyle,
   elementContains: elementContains,
-  escapeHTML: escapeHTML
+  escapeHTML: escapeHTML,
+  stripHTMLTags: stripHTMLTags
 });
 
 /** 正则匹配数据验证 */
@@ -1885,25 +2298,23 @@ var _iterCall = function (iterator, fn, value, entries) {
   }
 };
 
-var _iterators = {};
-
 // check on default Array iterator
 
 
-var ITERATOR = _wks('iterator');
+var ITERATOR$2 = _wks('iterator');
 
-var ArrayProto = Array.prototype;
+var ArrayProto$1 = Array.prototype;
 
 var _isArrayIter = function (it) {
-  return it !== undefined && (_iterators.Array === it || ArrayProto[ITERATOR] === it);
+  return it !== undefined && (_iterators.Array === it || ArrayProto$1[ITERATOR$2] === it);
 };
 
-var ITERATOR$1 = _wks('iterator');
+var ITERATOR$3 = _wks('iterator');
 
 
 
 var core_getIteratorMethod = _core.getIteratorMethod = function (it) {
-  if (it != undefined) return it[ITERATOR$1] || it['@@iterator'] || _iterators[_classof(it)];
+  if (it != undefined) return it[ITERATOR$3] || it['@@iterator'] || _iterators[_classof(it)];
 };
 
 var _forOf = createCommonjsModule(function (module) {
@@ -1955,10 +2366,6 @@ var _invoke = function (fn, args, that) {
 
   return fn.apply(that, args);
 };
-
-var document$2 = _global.document;
-
-var _html = document$2 && document$2.documentElement;
 
 var process = _global.process;
 var setTask = _global.setImmediate;
@@ -2182,25 +2589,12 @@ var _redefineAll = function (target, src, safe) {
   return target;
 };
 
-var def = _objectDp.f;
-
-
-
-var TAG$1 = _wks('toStringTag');
-
-var _setToStringTag = function (it, tag, stat) {
-  if (it && !_has(it = stat ? it : it.prototype, TAG$1)) def(it, TAG$1, {
-    configurable: true,
-    value: tag
-  });
-};
-
-var ITERATOR$2 = _wks('iterator');
+var ITERATOR$4 = _wks('iterator');
 
 var SAFE_CLOSING = false;
 
 try {
-  var riter = [7][ITERATOR$2]();
+  var riter = [7][ITERATOR$4]();
 
   riter['return'] = function () {
     SAFE_CLOSING = true;
@@ -2220,7 +2614,7 @@ var _iterDetect = function (exec, skipClosing) {
 
   try {
     var arr = [7];
-    var iter = arr[ITERATOR$2]();
+    var iter = arr[ITERATOR$4]();
 
     iter.next = function () {
       return {
@@ -2228,7 +2622,7 @@ var _iterDetect = function (exec, skipClosing) {
       };
     };
 
-    arr[ITERATOR$2] = function () {
+    arr[ITERATOR$4] = function () {
       return iter;
     };
 
@@ -2573,26 +2967,17 @@ _export(_export.S + _export.F * !(USE_NATIVE && _iterDetect(function (iter) {
   }
 });
 
-var test = {};
-test[_wks('toStringTag')] = 'z';
-
-if (test + '' != '[object z]') {
-  _redefine(Object.prototype, 'toString', function toString() {
-    return '[object ' + _classof(this) + ']';
-  }, true);
-}
-
 var TYPED = _uid('typed_array');
 var VIEW = _uid('view');
 var ABV = !!(_global.ArrayBuffer && _global.DataView);
 var CONSTR = ABV;
-var i$1 = 0;
+var i$2 = 0;
 var l = 9;
 var Typed;
 var TypedArrayConstructors = 'Int8Array,Uint8Array,Uint8ClampedArray,Int16Array,Uint16Array,Int32Array,Uint32Array,Float32Array,Float64Array'.split(',');
 
-while (i$1 < l) {
-  if (Typed = _global[TypedArrayConstructors[i$1++]]) {
+while (i$2 < l) {
+  if (Typed = _global[TypedArrayConstructors[i$2++]]) {
     _hide(Typed.prototype, TYPED, true);
     _hide(Typed.prototype, VIEW, true);
   } else CONSTR = false;
@@ -2984,103 +3369,6 @@ exports[ARRAY_BUFFER] = $ArrayBuffer;
 exports[DATA_VIEW] = $DataView;
 });
 
-// 19.1.2.14 / 15.2.3.14 Object.keys(O)
-
-
-
-
-var _objectKeys = Object.keys || function keys(O) {
-  return _objectKeysInternal(O, _enumBugKeys);
-};
-
-var _objectDps = _descriptors ? Object.defineProperties : function defineProperties(O, Properties) {
-  _anObject(O);
-  var keys = _objectKeys(Properties);
-  var length = keys.length;
-  var i = 0;
-  var P;
-
-  while (length > i) _objectDp.f(O, P = keys[i++], Properties[P]);
-
-  return O;
-};
-
-// 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
-
-
-
-
-
-
-var IE_PROTO$1 = _sharedKey('IE_PROTO');
-
-var Empty = function () {
-  /* empty */
-};
-
-var PROTOTYPE$1 = 'prototype'; // Create object with fake `null` prototype: use iframe Object with cleared prototype
-
-var createDict = function () {
-  // Thrash, waste and sodomy: IE GC bug
-  var iframe = _domCreate('iframe');
-
-  var i = _enumBugKeys.length;
-  var lt = '<';
-  var gt = '>';
-  var iframeDocument;
-  iframe.style.display = 'none';
-
-  _html.appendChild(iframe);
-
-  iframe.src = 'javascript:'; // eslint-disable-line no-script-url
-  // createDict = iframe.contentWindow.Object;
-  // html.removeChild(iframe);
-
-  iframeDocument = iframe.contentWindow.document;
-  iframeDocument.open();
-  iframeDocument.write(lt + 'script' + gt + 'document.F=Object' + lt + '/script' + gt);
-  iframeDocument.close();
-  createDict = iframeDocument.F;
-
-  while (i--) delete createDict[PROTOTYPE$1][_enumBugKeys[i]];
-
-  return createDict();
-};
-
-var _objectCreate = Object.create || function create(O, Properties) {
-  var result;
-
-  if (O !== null) {
-    Empty[PROTOTYPE$1] = _anObject(O);
-    result = new Empty();
-    Empty[PROTOTYPE$1] = null; // add "__proto__" for Object.getPrototypeOf polyfill
-
-    result[IE_PROTO$1] = O;
-  } else result = createDict();
-
-  return Properties === undefined ? result : _objectDps(result, Properties);
-};
-
-// 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
-
-
-
-
-var IE_PROTO$2 = _sharedKey('IE_PROTO');
-
-var ObjectProto = Object.prototype;
-
-var _objectGpo = Object.getPrototypeOf || function (O) {
-  O = _toObject(O);
-  if (_has(O, IE_PROTO$2)) return O[IE_PROTO$2];
-
-  if (typeof O.constructor == 'function' && O instanceof O.constructor) {
-    return O.constructor.prototype;
-  }
-
-  return O instanceof Object ? ObjectProto : null;
-};
-
 // 7.2.2 IsArray(argument)
 
 
@@ -3177,157 +3465,6 @@ var _arrayMethods = function (TYPE, $create) {
     return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : result;
   };
 };
-
-// 22.1.3.31 Array.prototype[@@unscopables]
-var UNSCOPABLES = _wks('unscopables');
-
-var ArrayProto$1 = Array.prototype;
-if (ArrayProto$1[UNSCOPABLES] == undefined) _hide(ArrayProto$1, UNSCOPABLES, {});
-
-var _addToUnscopables = function (key) {
-  ArrayProto$1[UNSCOPABLES][key] = true;
-};
-
-var _iterStep = function (done, value) {
-  return {
-    value: value,
-    done: !!done
-  };
-};
-
-var IteratorPrototype = {}; // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
-
-_hide(IteratorPrototype, _wks('iterator'), function () {
-  return this;
-});
-
-var _iterCreate = function (Constructor, NAME, next) {
-  Constructor.prototype = _objectCreate(IteratorPrototype, {
-    next: _propertyDesc(1, next)
-  });
-  _setToStringTag(Constructor, NAME + ' Iterator');
-};
-
-var ITERATOR$3 = _wks('iterator');
-
-var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
-
-var FF_ITERATOR = '@@iterator';
-var KEYS = 'keys';
-var VALUES = 'values';
-
-var returnThis = function () {
-  return this;
-};
-
-var _iterDefine = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCED) {
-  _iterCreate(Constructor, NAME, next);
-
-  var getMethod = function (kind) {
-    if (!BUGGY && kind in proto) return proto[kind];
-
-    switch (kind) {
-      case KEYS:
-        return function keys() {
-          return new Constructor(this, kind);
-        };
-
-      case VALUES:
-        return function values() {
-          return new Constructor(this, kind);
-        };
-    }
-
-    return function entries() {
-      return new Constructor(this, kind);
-    };
-  };
-
-  var TAG = NAME + ' Iterator';
-  var DEF_VALUES = DEFAULT == VALUES;
-  var VALUES_BUG = false;
-  var proto = Base.prototype;
-  var $native = proto[ITERATOR$3] || proto[FF_ITERATOR] || DEFAULT && proto[DEFAULT];
-  var $default = $native || getMethod(DEFAULT);
-  var $entries = DEFAULT ? !DEF_VALUES ? $default : getMethod('entries') : undefined;
-  var $anyNative = NAME == 'Array' ? proto.entries || $native : $native;
-  var methods, key, IteratorPrototype; // Fix native
-
-  if ($anyNative) {
-    IteratorPrototype = _objectGpo($anyNative.call(new Base()));
-
-    if (IteratorPrototype !== Object.prototype && IteratorPrototype.next) {
-      // Set @@toStringTag to native iterators
-      _setToStringTag(IteratorPrototype, TAG, true); // fix for some old engines
-
-      if ( typeof IteratorPrototype[ITERATOR$3] != 'function') _hide(IteratorPrototype, ITERATOR$3, returnThis);
-    }
-  } // fix Array#{values, @@iterator}.name in V8 / FF
-
-
-  if (DEF_VALUES && $native && $native.name !== VALUES) {
-    VALUES_BUG = true;
-
-    $default = function values() {
-      return $native.call(this);
-    };
-  } // Define iterator
-
-
-  if ( (BUGGY || VALUES_BUG || !proto[ITERATOR$3])) {
-    _hide(proto, ITERATOR$3, $default);
-  } // Plug for library
-
-
-  _iterators[NAME] = $default;
-  _iterators[TAG] = returnThis;
-
-  if (DEFAULT) {
-    methods = {
-      values: DEF_VALUES ? $default : getMethod(VALUES),
-      keys: IS_SET ? $default : getMethod(KEYS),
-      entries: $entries
-    };
-    if (FORCED) for (key in methods) {
-      if (!(key in proto)) _redefine(proto, key, methods[key]);
-    } else _export(_export.P + _export.F * (BUGGY || VALUES_BUG), NAME, methods);
-  }
-
-  return methods;
-};
-
-// 22.1.3.4 Array.prototype.entries()
-// 22.1.3.13 Array.prototype.keys()
-// 22.1.3.29 Array.prototype.values()
-// 22.1.3.30 Array.prototype[@@iterator]()
-
-
-var es6_array_iterator = _iterDefine(Array, 'Array', function (iterated, kind) {
-  this._t = _toIobject(iterated); // target
-
-  this._i = 0; // next index
-
-  this._k = kind; // kind
-  // 22.1.5.2.1 %ArrayIteratorPrototype%.next()
-}, function () {
-  var O = this._t;
-  var kind = this._k;
-  var index = this._i++;
-
-  if (!O || index >= O.length) {
-    this._t = undefined;
-    return _iterStep(1);
-  }
-
-  if (kind == 'keys') return _iterStep(0, index);
-  if (kind == 'values') return _iterStep(0, O[index]);
-  return _iterStep(0, [index, O[index]]);
-}, 'values'); // argumentsList[@@iterator] is %ArrayProto_values% (9.4.4.6, 9.4.4.7)
-
-_iterators.Arguments = _iterators.Array;
-_addToUnscopables('keys');
-_addToUnscopables('values');
-_addToUnscopables('entries');
 
 var _arrayCopyWithin = [].copyWithin || function copyWithin(target
 /* = 0 */
@@ -3946,9 +4083,9 @@ var dP$2 = _objectDp.f;
 
 var FProto = Function.prototype;
 var nameRE = /^\s*function ([^ (]*)/;
-var NAME = 'name'; // 19.2.4.2 name
+var NAME$1 = 'name'; // 19.2.4.2 name
 
-NAME in FProto || _descriptors && dP$2(FProto, NAME, {
+NAME$1 in FProto || _descriptors && dP$2(FProto, NAME$1, {
   configurable: true,
   get: function () {
     try {
@@ -4206,6 +4343,370 @@ var _Date = /*#__PURE__*/Object.freeze({
   timesToYyMmDd: timesToYyMmDd
 });
 
+var _meta = createCommonjsModule(function (module) {
+var META = _uid('meta');
+
+
+
+
+
+var setDesc = _objectDp.f;
+
+var id = 0;
+
+var isExtensible = Object.isExtensible || function () {
+  return true;
+};
+
+var FREEZE = !_fails(function () {
+  return isExtensible(Object.preventExtensions({}));
+});
+
+var setMeta = function (it) {
+  setDesc(it, META, {
+    value: {
+      i: 'O' + ++id,
+      // object ID
+      w: {} // weak collections IDs
+
+    }
+  });
+};
+
+var fastKey = function (it, create) {
+  // return primitive with prefix
+  if (!_isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+
+  if (!_has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return 'F'; // not necessary to add metadata
+
+    if (!create) return 'E'; // add missing metadata
+
+    setMeta(it); // return object ID
+  }
+
+  return it[META].i;
+};
+
+var getWeak = function (it, create) {
+  if (!_has(it, META)) {
+    // can't set metadata to uncaught frozen object
+    if (!isExtensible(it)) return true; // not necessary to add metadata
+
+    if (!create) return false; // add missing metadata
+
+    setMeta(it); // return hash weak collections IDs
+  }
+
+  return it[META].w;
+}; // add metadata on freeze-family methods calling
+
+
+var onFreeze = function (it) {
+  if (FREEZE && meta.NEED && isExtensible(it) && !_has(it, META)) setMeta(it);
+  return it;
+};
+
+var meta = module.exports = {
+  KEY: META,
+  NEED: false,
+  fastKey: fastKey,
+  getWeak: getWeak,
+  onFreeze: onFreeze
+};
+});
+var _meta_1 = _meta.KEY;
+var _meta_2 = _meta.NEED;
+var _meta_3 = _meta.fastKey;
+var _meta_4 = _meta.getWeak;
+var _meta_5 = _meta.onFreeze;
+
+var _validateCollection = function (it, TYPE) {
+  if (!_isObject(it) || it._t !== TYPE) throw TypeError('Incompatible receiver, ' + TYPE + ' required!');
+  return it;
+};
+
+var dP$3 = _objectDp.f;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var fastKey = _meta.fastKey;
+
+
+
+var SIZE = _descriptors ? '_s' : 'size';
+
+var getEntry = function (that, key) {
+  // fast case
+  var index = fastKey(key);
+  var entry;
+  if (index !== 'F') return that._i[index]; // frozen object case
+
+  for (entry = that._f; entry; entry = entry.n) {
+    if (entry.k == key) return entry;
+  }
+};
+
+var _collectionStrong = {
+  getConstructor: function (wrapper, NAME, IS_MAP, ADDER) {
+    var C = wrapper(function (that, iterable) {
+      _anInstance(that, C, NAME, '_i');
+      that._t = NAME; // collection type
+
+      that._i = _objectCreate(null); // index
+
+      that._f = undefined; // first entry
+
+      that._l = undefined; // last entry
+
+      that[SIZE] = 0; // size
+
+      if (iterable != undefined) _forOf(iterable, IS_MAP, that[ADDER], that);
+    });
+    _redefineAll(C.prototype, {
+      // 23.1.3.1 Map.prototype.clear()
+      // 23.2.3.2 Set.prototype.clear()
+      clear: function clear() {
+        for (var that = _validateCollection(this, NAME), data = that._i, entry = that._f; entry; entry = entry.n) {
+          entry.r = true;
+          if (entry.p) entry.p = entry.p.n = undefined;
+          delete data[entry.i];
+        }
+
+        that._f = that._l = undefined;
+        that[SIZE] = 0;
+      },
+      // 23.1.3.3 Map.prototype.delete(key)
+      // 23.2.3.4 Set.prototype.delete(value)
+      'delete': function (key) {
+        var that = _validateCollection(this, NAME);
+        var entry = getEntry(that, key);
+
+        if (entry) {
+          var next = entry.n;
+          var prev = entry.p;
+          delete that._i[entry.i];
+          entry.r = true;
+          if (prev) prev.n = next;
+          if (next) next.p = prev;
+          if (that._f == entry) that._f = next;
+          if (that._l == entry) that._l = prev;
+          that[SIZE]--;
+        }
+
+        return !!entry;
+      },
+      // 23.2.3.6 Set.prototype.forEach(callbackfn, thisArg = undefined)
+      // 23.1.3.5 Map.prototype.forEach(callbackfn, thisArg = undefined)
+      forEach: function forEach(callbackfn
+      /* , that = undefined */
+      ) {
+        _validateCollection(this, NAME);
+        var f = _ctx(callbackfn, arguments.length > 1 ? arguments[1] : undefined, 3);
+        var entry;
+
+        while (entry = entry ? entry.n : this._f) {
+          f(entry.v, entry.k, this); // revert to the last existing entry
+
+          while (entry && entry.r) entry = entry.p;
+        }
+      },
+      // 23.1.3.7 Map.prototype.has(key)
+      // 23.2.3.7 Set.prototype.has(value)
+      has: function has(key) {
+        return !!getEntry(_validateCollection(this, NAME), key);
+      }
+    });
+    if (_descriptors) dP$3(C.prototype, 'size', {
+      get: function () {
+        return _validateCollection(this, NAME)[SIZE];
+      }
+    });
+    return C;
+  },
+  def: function (that, key, value) {
+    var entry = getEntry(that, key);
+    var prev, index; // change existing entry
+
+    if (entry) {
+      entry.v = value; // create new entry
+    } else {
+      that._l = entry = {
+        i: index = fastKey(key, true),
+        // <- index
+        k: key,
+        // <- key
+        v: value,
+        // <- value
+        p: prev = that._l,
+        // <- previous entry
+        n: undefined,
+        // <- next entry
+        r: false // <- removed
+
+      };
+      if (!that._f) that._f = entry;
+      if (prev) prev.n = entry;
+      that[SIZE]++; // add to index
+
+      if (index !== 'F') that._i[index] = entry;
+    }
+
+    return that;
+  },
+  getEntry: getEntry,
+  setStrong: function (C, NAME, IS_MAP) {
+    // add .keys, .values, .entries, [@@iterator]
+    // 23.1.3.4, 23.1.3.8, 23.1.3.11, 23.1.3.12, 23.2.3.5, 23.2.3.8, 23.2.3.10, 23.2.3.11
+    _iterDefine(C, NAME, function (iterated, kind) {
+      this._t = _validateCollection(iterated, NAME); // target
+
+      this._k = kind; // kind
+
+      this._l = undefined; // previous
+    }, function () {
+      var that = this;
+      var kind = that._k;
+      var entry = that._l; // revert to the last existing entry
+
+      while (entry && entry.r) entry = entry.p; // get next entry
+
+
+      if (!that._t || !(that._l = entry = entry ? entry.n : that._t._f)) {
+        // or finish the iteration
+        that._t = undefined;
+        return _iterStep(1);
+      } // return step by kind
+
+
+      if (kind == 'keys') return _iterStep(0, entry.k);
+      if (kind == 'values') return _iterStep(0, entry.v);
+      return _iterStep(0, [entry.k, entry.v]);
+    }, IS_MAP ? 'entries' : 'values', !IS_MAP, true); // add [@@species], 23.1.2.2, 23.2.2.2
+
+    _setSpecies(NAME);
+  }
+};
+
+var _collection = function (NAME, wrapper, methods, common, IS_MAP, IS_WEAK) {
+  var Base = _global[NAME];
+  var C = Base;
+  var ADDER = IS_MAP ? 'set' : 'add';
+  var proto = C && C.prototype;
+  var O = {};
+
+  var fixMethod = function (KEY) {
+    var fn = proto[KEY];
+    _redefine(proto, KEY, KEY == 'delete' ? function (a) {
+      return IS_WEAK && !_isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
+    } : KEY == 'has' ? function has(a) {
+      return IS_WEAK && !_isObject(a) ? false : fn.call(this, a === 0 ? 0 : a);
+    } : KEY == 'get' ? function get(a) {
+      return IS_WEAK && !_isObject(a) ? undefined : fn.call(this, a === 0 ? 0 : a);
+    } : KEY == 'add' ? function add(a) {
+      fn.call(this, a === 0 ? 0 : a);
+      return this;
+    } : function set(a, b) {
+      fn.call(this, a === 0 ? 0 : a, b);
+      return this;
+    });
+  };
+
+  if (typeof C != 'function' || !(IS_WEAK || proto.forEach && !_fails(function () {
+    new C().entries().next();
+  }))) {
+    // create collection constructor
+    C = common.getConstructor(wrapper, NAME, IS_MAP, ADDER);
+    _redefineAll(C.prototype, methods);
+    _meta.NEED = true;
+  } else {
+    var instance = new C(); // early implementations not supports chaining
+
+    var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance; // V8 ~  Chromium 40- weak-collections throws on primitives, but should return false
+
+    var THROWS_ON_PRIMITIVES = _fails(function () {
+      instance.has(1);
+    }); // most early implementations doesn't supports iterables, most modern - not close it correctly
+
+    var ACCEPT_ITERABLES = _iterDetect(function (iter) {
+      new C(iter);
+    }); // eslint-disable-line no-new
+    // for early implementations -0 and +0 not the same
+
+    var BUGGY_ZERO = !IS_WEAK && _fails(function () {
+      // V8 ~ Chromium 42- fails only with 5+ elements
+      var $instance = new C();
+      var index = 5;
+
+      while (index--) $instance[ADDER](index, index);
+
+      return !$instance.has(-0);
+    });
+
+    if (!ACCEPT_ITERABLES) {
+      C = wrapper(function (target, iterable) {
+        _anInstance(target, C, NAME);
+        var that = _inheritIfRequired(new Base(), target, C);
+        if (iterable != undefined) _forOf(iterable, IS_MAP, that[ADDER], that);
+        return that;
+      });
+      C.prototype = proto;
+      proto.constructor = C;
+    }
+
+    if (THROWS_ON_PRIMITIVES || BUGGY_ZERO) {
+      fixMethod('delete');
+      fixMethod('has');
+      IS_MAP && fixMethod('get');
+    }
+
+    if (BUGGY_ZERO || HASNT_CHAINING) fixMethod(ADDER); // weak collections should not contains .clear method
+
+    if (IS_WEAK && proto.clear) delete proto.clear;
+  }
+
+  _setToStringTag(C, NAME);
+  O[NAME] = C;
+  _export(_export.G + _export.W + _export.F * (C != Base), O);
+  if (!IS_WEAK) common.setStrong(C, NAME, IS_MAP);
+  return C;
+};
+
+var MAP = 'Map'; // 23.1 Map Objects
+
+var es6_map = _collection(MAP, function (get) {
+  return function Map() {
+    return get(this, arguments.length > 0 ? arguments[0] : undefined);
+  };
+}, {
+  // 23.1.3.6 Map.prototype.get(key)
+  get: function get(key) {
+    var entry = _collectionStrong.getEntry(_validateCollection(this, MAP), key);
+    return entry && entry.v;
+  },
+  // 23.1.3.9 Map.prototype.set(key, value)
+  set: function set(key, value) {
+    return _collectionStrong.def(_validateCollection(this, MAP), key === 0 ? 0 : key, value);
+  }
+}, _collectionStrong, true);
+
 /** storage */
 
 /**
@@ -4312,6 +4813,23 @@ var localStorageGet = function localStorageGet(key) {
 var localStorageRemove = function localStorageRemove(key) {
   localStorage.removeItem(key);
 };
+/**
+ * 缓存函数器
+ * @function memoize
+ * @param { function } - fn - 函数
+ * @returns { Map } - cached - 类数组
+ */
+
+var memoize = function memoize(fn) {
+  var cache = new Map();
+
+  var cached = function cached(val) {
+    return cache.has(val) ? cache.get(val) : cache.set(val, fn.call(this, val)) && cache.get(val);
+  };
+
+  cached.cache = cache;
+  return cached;
+};
 
 var Storage = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -4323,7 +4841,8 @@ var Storage = /*#__PURE__*/Object.freeze({
   sessionStorageGet: sessionStorageGet,
   localStorageSet: localStorageSet,
   localStorageGet: localStorageGet,
-  localStorageRemove: localStorageRemove
+  localStorageRemove: localStorageRemove,
+  memoize: memoize
 });
 
 var isEnum = _objectPie.f;
@@ -4359,61 +4878,6 @@ _export(_export.S, 'Object', {
     return $values(it);
   }
 });
-
-var ITERATOR$4 = _wks('iterator');
-var TO_STRING_TAG = _wks('toStringTag');
-var ArrayValues = _iterators.Array;
-var DOMIterables = {
-  CSSRuleList: true,
-  // TODO: Not spec compliant, should be false.
-  CSSStyleDeclaration: false,
-  CSSValueList: false,
-  ClientRectList: false,
-  DOMRectList: false,
-  DOMStringList: false,
-  DOMTokenList: true,
-  DataTransferItemList: false,
-  FileList: false,
-  HTMLAllCollection: false,
-  HTMLCollection: false,
-  HTMLFormElement: false,
-  HTMLSelectElement: false,
-  MediaList: true,
-  // TODO: Not spec compliant, should be false.
-  MimeTypeArray: false,
-  NamedNodeMap: false,
-  NodeList: true,
-  PaintRequestList: false,
-  Plugin: false,
-  PluginArray: false,
-  SVGLengthList: false,
-  SVGNumberList: false,
-  SVGPathSegList: false,
-  SVGPointList: false,
-  SVGStringList: false,
-  SVGTransformList: false,
-  SourceBufferList: false,
-  StyleSheetList: true,
-  // TODO: Not spec compliant, should be false.
-  TextTrackCueList: false,
-  TextTrackList: false,
-  TouchList: false
-};
-
-for (var collections = _objectKeys(DOMIterables), i$2 = 0; i$2 < collections.length; i$2++) {
-  var NAME$1 = collections[i$2];
-  var explicit = DOMIterables[NAME$1];
-  var Collection = _global[NAME$1];
-  var proto$1 = Collection && Collection.prototype;
-  var key;
-
-  if (proto$1) {
-    if (!proto$1[ITERATOR$4]) _hide(proto$1, ITERATOR$4, ArrayValues);
-    if (!proto$1[TO_STRING_TAG]) _hide(proto$1, TO_STRING_TAG, NAME$1);
-    _iterators[NAME$1] = ArrayValues;
-    if (explicit) for (key in es6_array_iterator) if (!proto$1[key]) _redefine(proto$1, key, es6_array_iterator[key], true);
-  }
-}
 
 /** client */
 
@@ -4529,35 +4993,17 @@ var Client = /*#__PURE__*/Object.freeze({
   detectDeviceType: detectDeviceType
 });
 
-// 21.2.5.3 get RegExp.prototype.flags()
-if (_descriptors && /./g.flags != 'g') _objectDp.f(RegExp.prototype, 'flags', {
-  configurable: true,
-  get: _flags
+var $includes = _arrayIncludes(true);
+
+_export(_export.P, 'Array', {
+  includes: function includes(el
+  /* , fromIndex = 0 */
+  ) {
+    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
+  }
 });
 
-var TO_STRING = 'toString';
-var $toString = /./[TO_STRING];
-
-var define = function (fn) {
-  _redefine(RegExp.prototype, TO_STRING, fn, true);
-}; // 21.2.5.14 RegExp.prototype.toString()
-
-
-if (_fails(function () {
-  return $toString.call({
-    source: 'a',
-    flags: 'b'
-  }) != '/a/b';
-})) {
-  define(function toString() {
-    var R = _anObject(this);
-    return '/'.concat(R.source, '/', 'flags' in R ? R.flags : !_descriptors && R instanceof RegExp ? _flags.call(R) : undefined);
-  }); // FF44- RegExp#toString has a wrong name
-} else if ($toString.name != TO_STRING) {
-  define(function toString() {
-    return $toString.call(this);
-  });
-}
+_addToUnscopables('includes');
 
 /** calculator */
 
@@ -4604,6 +5050,10 @@ function getTreeData(data, pid) {
  */
 
 function inArray(item, data) {
+  if ('includes' in []) {
+    return data.includes(item);
+  }
+
   for (var i = 0; i < data.length; i++) {
     if (item === data[i]) {
       return i;
@@ -4623,13 +5073,205 @@ function countOccurrences(arr, value) {
     return v === value ? a + 1 : a + 0;
   }, 0);
 }
+/**
+ * 阶乘算法 factorialize
+ * @param { number } - number
+ * @name factorialize
+ * @returns { number } - factorialize
+ */
+
+var factorialize = function factorialize(num) {
+  if (num < 0) return -1;
+  if (num === 0 || num === 1) return 1;
+
+  if (num > 1) {
+    return num * factorialize(num - 1);
+  }
+};
+/**
+ * 生成菲波那切数列 getFibonacci
+ * @param { number } - number
+ * @name getFibonacci
+ * @returns { number } - value
+ */
+
+var getFibonacci = function getFibonacci(num) {
+  var fibona = [];
+  var i = 0;
+
+  while (i < num) {
+    if (i <= 1) {
+      fibona.push(i);
+    } else {
+      fibona.push(fibona[i - 1] + fibona[i - 2]);
+    }
+
+    i++;
+  }
+
+  return fibona;
+};
+/**
+ * quick sort calculator
+ * @function quickSort
+ * @param { Array } - arr - 数组
+ * @returns { Array } - arr - 序列后数组
+ */
+
+var quickSort = function quickSort(arr) {
+  var specimen = arr[0];
+  var leftArr = [];
+  var rightArr = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] >= specimen) rightArr.push(arr[i]);else leftArr.push(arr[i]);
+  }
+
+  return quickSort(leftArr).concat([specimen], quickSort(rightArr));
+};
+/**
+ * bubble sort calculator
+ * @function bubbleSort
+ * @param { Array } - arr - 数组
+ * @returns { Array } - arr - 序列后数组
+ */
+
+var bubbleSort = function bubbleSort(arr) {
+  var temp = null;
+
+  for (var i = 0; i < arr.length; i++) {
+    for (var j = 0; j < arr.length - i - 1; j++) {
+      if (arr[j] > arr[j + 1]) {
+        /** console.time('bubbel') => console.timeEnd('bubbel'): 0.093994140625ms */
+        // [arr[j], arr[j + 1]] = ((a, b) => [b, a])(arr[j], arr[j + 1])
+
+        /** console.time('bubbels') => console.timeEnd('bubbels'): 0.02685546875ms */
+        temp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = temp;
+        /**
+          for (let j = 0; j < arr.length - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = swap(arr[j], arr[j+1])
+              }
+            }
+          }
+          console.timeEnd('bubbelss')
+          function swap(a, b) {return [b, a]}
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.093994140625ms
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.02685546875ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.025146484375ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02392578125ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02392578125ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02392578125ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.015869140625ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.015869140625ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.01708984375ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.015869140625ms
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.075927734375ms
+          undefined
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.015869140625ms
+          undefined
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.016845703125ms
+          undefined
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.016357421875ms
+          undefined
+          bubbleSortss(b)
+          VM1635:11 bubbelss: 0.015869140625ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.015869140625ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.01611328125ms
+          undefined
+          bubbleSorts(b)
+          VM1447:13 bubbels: 0.01513671875ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.025146484375ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02392578125ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02685546875ms
+          undefined
+          bubbleSort(b)
+          VM1254:10 bubbel: 0.02490234375ms
+         */
+      }
+    }
+  }
+};
 
 var Cal = /*#__PURE__*/Object.freeze({
   __proto__: null,
   formatMoney: formatMoney,
   getTreeData: getTreeData,
   inArray: inArray,
-  countOccurrences: countOccurrences
+  countOccurrences: countOccurrences,
+  factorialize: factorialize,
+  getFibonacci: getFibonacci,
+  quickSort: quickSort,
+  bubbleSort: bubbleSort
 });
 
-export { Bower, Cal, Client, Common, _Date as Dater, Dom, File$1 as File, Regex, Storage };
+/** Event */
+
+/**
+ * EventHub 发布者订阅事件器
+ * @function EventHub
+ * @param { null } - 无返回参数
+ * @returns { Object } - 广播/订阅
+ */
+var EventHub = function EventHub() {
+  return {
+    hub: Object.create(null),
+    emit: function emit(event, data) {
+      (this.hub[event] || []).forEach(function (handler) {
+        return handler(data);
+      });
+    },
+    on: function on(event, handler) {
+      if (!this.hub[event]) this.hub[event] = [];
+      this.hub[event].push(handler);
+    },
+    off: function off(event, handler) {
+      var i = (this.hub[event] || []).findIndex(function (h) {
+        return h === handler;
+      });
+      if (i > -1) this.hub[event].splice(i, 1);
+      if (this.hub[event].length === 0) delete this.hub[event];
+    }
+  };
+};
+
+var Event = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  EventHub: EventHub
+});
+
+export { Bower, Cal, Client, Common, _Date as Dater, Dom, Event, File$1 as File, Regex, Storage };
